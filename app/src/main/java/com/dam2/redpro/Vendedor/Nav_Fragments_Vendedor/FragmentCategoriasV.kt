@@ -16,159 +16,167 @@ import com.dam2.redpro.Modelos.ModeloCategoria
 import com.dam2.redpro.R
 import com.dam2.redpro.databinding.FragmentCategoriasVBinding
 import com.github.dhaval2404.imagepicker.ImagePicker
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 
+/**
+ * Gestión de categorías (Vendedor)
+ * - Agregar categoría (nombre + imagen)
+ * - Listar / editar / eliminar (a través del adaptador)
+ */
 class FragmentCategoriasV : Fragment() {
 
-    private lateinit var binding : FragmentCategoriasVBinding
-    private lateinit var mContext : Context
-    private lateinit var progressDialog : ProgressDialog
-    private var imageUri : Uri?=null
+    private lateinit var binding: FragmentCategoriasVBinding
+    private lateinit var mContext: Context
+    private lateinit var progressDialog: ProgressDialog
+    private var imageUri: Uri? = null
 
-    private lateinit var categoriasArrayList : ArrayList<ModeloCategoria>
-    private lateinit var adaptadorCategoriaV : AdaptadorCategoriaV
+    private lateinit var categoriasArrayList: ArrayList<ModeloCategoria>
+    private lateinit var adaptadorCategoriaV: AdaptadorCategoriaV
 
     override fun onAttach(context: Context) {
         mContext = context
         super.onAttach(context)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         binding = FragmentCategoriasVBinding.inflate(inflater, container, false)
 
-        progressDialog = ProgressDialog(context)
-        progressDialog.setTitle("Espere por favor")
-        progressDialog.setCanceledOnTouchOutside(false)
-
-        binding.imgCategorias.setOnClickListener {
-            seleccionarImg()
+        progressDialog = ProgressDialog(context).apply {
+            setTitle("Espere por favor")
+            setCanceledOnTouchOutside(false)
         }
 
-        binding.btnAgregarCat.setOnClickListener {
-            validarInfo()
-        }
+        binding.imgCategorias.setOnClickListener { seleccionarImg() }
+        binding.btnAgregarCat.setOnClickListener { validarInfo() }
 
         listarCategorias()
-
         return binding.root
     }
 
+    /** Lista categorías ordenadas por nombre. */
     private fun listarCategorias() {
         categoriasArrayList = ArrayList()
-        val ref = FirebaseDatabase.getInstance().getReference("Categorias").orderByChild("categoria")
-        ref.addValueEventListener(object : ValueEventListener{
-            override fun onDataChange(snapshot: DataSnapshot) {
-                categoriasArrayList.clear()
-                for (ds in snapshot.children){
-                    val modelo = ds.getValue(ModeloCategoria::class.java)
-                    categoriasArrayList.add(modelo!!)
+        FirebaseDatabase.getInstance()
+            .getReference("Categorias")
+            .orderByChild("categoria")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    categoriasArrayList.clear()
+                    for (ds in snapshot.children) {
+                        ds.getValue(ModeloCategoria::class.java)?.let { categoriasArrayList.add(it) }
+                    }
+                    adaptadorCategoriaV = AdaptadorCategoriaV(mContext, categoriasArrayList)
+                    binding.rvCategorias.adapter = adaptadorCategoriaV
                 }
-                adaptadorCategoriaV = AdaptadorCategoriaV(mContext, categoriasArrayList)
-                binding.rvCategorias.adapter = adaptadorCategoriaV
-            }
 
-            override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
-            }
-        })
+                override fun onCancelled(error: DatabaseError) {
+                    // Evitar crash si falla la lectura
+                }
+            })
     }
 
+    /** Lanza el selector de imagen. */
     private fun seleccionarImg() {
-        ImagePicker.with(requireActivity())
+        ImagePicker.with(this) // usar el Fragment como owner
             .crop()
             .compress(1024)
-            .maxResultSize(1080,1080)
-            .createIntent {intent->
-                resultadoImg.launch(intent)
-            }
+            .maxResultSize(1080, 1080)
+            .createIntent { intent -> resultadoImg.launch(intent) }
     }
 
     private val resultadoImg =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()){resultado->
-            if (resultado.resultCode == Activity.RESULT_OK){
-                val data = resultado.data
-                imageUri = data!!.data
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { resultado ->
+            if (resultado.resultCode == Activity.RESULT_OK) {
+                imageUri = resultado.data?.data
                 binding.imgCategorias.setImageURI(imageUri)
-            }else{
-                Toast.makeText(mContext, "Acción cancelada",Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(mContext, "Acción cancelada", Toast.LENGTH_SHORT).show()
             }
         }
 
     private var categoria = ""
+
+    /** Valida que exista nombre e imagen antes de guardar. */
     private fun validarInfo() {
         categoria = binding.etCategoria.text.toString().trim()
-        if (categoria.isEmpty()){
-            Toast.makeText(context, "Ingrese una categoria",Toast.LENGTH_SHORT).show()
-        }else if (imageUri == null){
-            Toast.makeText(context, "Seleccione una imagen",Toast.LENGTH_SHORT).show()
-        }
-        else{
-            agregarCatBD()
+        when {
+            categoria.isEmpty() -> Toast.makeText(context, "Ingrese una categoría", Toast.LENGTH_SHORT).show()
+            imageUri == null    -> Toast.makeText(context, "Seleccione una imagen", Toast.LENGTH_SHORT).show()
+            else                -> agregarCatBD()
         }
     }
 
+    /** Crea el nodo de categoría y luego sube la imagen a Storage. */
     private fun agregarCatBD() {
         progressDialog.setMessage("Agregando categoría")
         progressDialog.show()
 
         val ref = FirebaseDatabase.getInstance().getReference("Categorias")
-        val keyId = ref.push().key
+        val keyId = ref.push().key ?: run {
+            progressDialog.dismiss()
+            Toast.makeText(context, "No se pudo generar ID", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-        val hashMap = HashMap<String, Any>()
-        hashMap["id"] = "${keyId}"
-        hashMap["categoria"] = "${categoria}"
+        val datos = hashMapOf<String, Any>(
+            "id" to keyId,
+            "categoria" to categoria
+        )
 
-        ref.child(keyId!!)
-            .setValue(hashMap)
-            .addOnSuccessListener {
-                //progressDialog.dismiss()
-                //Toast.makeText(context, "Se agregó la categoría con éxito",Toast.LENGTH_SHORT).show()
-                //binding.etCategoria.setText("")
-                subirImgStorage(keyId)
-            }
-            .addOnFailureListener {e->
+        ref.child(keyId)
+            .setValue(datos)
+            .addOnSuccessListener { subirImgStorage(keyId) }
+            .addOnFailureListener { e ->
                 progressDialog.dismiss()
-                Toast.makeText(context, "${e.message}",Toast.LENGTH_SHORT).show()
-
+                Toast.makeText(context, e.message ?: "Error al agregar categoría", Toast.LENGTH_SHORT).show()
             }
-
     }
 
+    /** Sube la imagen a /Categorias/{id} y actualiza la URL en RTDB. */
     private fun subirImgStorage(keyId: String) {
+        val uri = imageUri ?: run {
+            progressDialog.dismiss()
+            Toast.makeText(context, "Imagen no disponible", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         progressDialog.setMessage("Subiendo imagen")
-        progressDialog.show()
 
-        val nombreImagen = keyId
-        val nombreCarpeta = "Categorias/$nombreImagen"
-        val storageReference = FirebaseStorage.getInstance().getReference(nombreCarpeta)
-        storageReference.putFile(imageUri!!)
-            .addOnSuccessListener {taskSnapshot->
-                progressDialog.dismiss()
-                val uriTask = taskSnapshot.storage.downloadUrl
-                while (!uriTask.isSuccessful);
-                val urlImgCargada = uriTask.result
-
-                if (uriTask.isSuccessful){
-                    val hashMap = HashMap<String, Any>()
-                    hashMap["imagenUrl"] = "$urlImgCargada"
-                    val ref = FirebaseDatabase.getInstance().getReference("Categorias")
-                    ref.child(nombreImagen).updateChildren(hashMap)
-                    Toast.makeText(mContext,"Se agregó la categoria con éxito",Toast.LENGTH_SHORT).show()
-                    binding.etCategoria.setText("")
-                    imageUri = null
-                    binding.imgCategorias.setImageURI(imageUri)
-                    binding.imgCategorias.setImageResource(R.drawable.categorias)
-                }
+        val storageReference = FirebaseStorage.getInstance().getReference("Categorias/$keyId")
+        storageReference.putFile(uri)
+            .addOnSuccessListener { taskSnapshot ->
+                taskSnapshot.storage.downloadUrl
+                    .addOnSuccessListener { url ->
+                        val imgMap = hashMapOf<String, Any>("imagenUrl" to url.toString())
+                        FirebaseDatabase.getInstance()
+                            .getReference("Categorias")
+                            .child(keyId)
+                            .updateChildren(imgMap)
+                            .addOnSuccessListener {
+                                progressDialog.dismiss()
+                                Toast.makeText(mContext, "Se agregó la categoría con éxito", Toast.LENGTH_SHORT).show()
+                                // Reset UI
+                                binding.etCategoria.setText("")
+                                imageUri = null
+                                binding.imgCategorias.setImageResource(R.drawable.categorias)
+                            }
+                            .addOnFailureListener { e ->
+                                progressDialog.dismiss()
+                                Toast.makeText(context, e.message ?: "No se guardó la URL de imagen", Toast.LENGTH_SHORT).show()
+                            }
+                    }
+                    .addOnFailureListener { e ->
+                        progressDialog.dismiss()
+                        Toast.makeText(context, e.message ?: "No se pudo obtener la URL de imagen", Toast.LENGTH_SHORT).show()
+                    }
             }
-            .addOnFailureListener {e->
+            .addOnFailureListener { e ->
                 progressDialog.dismiss()
-                Toast.makeText(context, "${e.message}",Toast.LENGTH_SHORT).show()
-
+                Toast.makeText(context, e.message ?: "No se pudo subir la imagen", Toast.LENGTH_SHORT).show()
             }
     }
-
 }

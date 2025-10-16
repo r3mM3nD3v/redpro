@@ -1,7 +1,6 @@
 package com.dam2.redpro.Adaptadores
 
 import android.content.Context
-import android.graphics.Paint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,183 +15,132 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import kotlin.math.cos
 
-class AdaptadorCarritoC : RecyclerView.Adapter<AdaptadorCarritoC.HolderProductoCarrito> {
+/**
+ * Adapter del carrito SIN monetización ni calificaciones:
+ * - Muestra imagen, nombre y cantidad.
+ * - Permite aumentar/disminuir cantidad y eliminar item.
+ */
+class AdaptadorCarritoC(
+    private val mContext: Context,
+    var productosArrayList: ArrayList<ModeloProductoCarrito>
+) : RecyclerView.Adapter<AdaptadorCarritoC.HolderProductoCarrito>() {
 
-    private lateinit var binding : ItemCarritoCBinding
-
-    private var mContext : Context
-    var productosArrayList : ArrayList<ModeloProductoCarrito>
-    private var firebaseAuth : FirebaseAuth
-
-    constructor(
-        mContext: Context,
-        productosArrayList: ArrayList<ModeloProductoCarrito>
-    ) : super() {
-        this.mContext = mContext
-        this.productosArrayList = productosArrayList
-        this.firebaseAuth = FirebaseAuth.getInstance()
-    }
+    private lateinit var binding: ItemCarritoCBinding
+    private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HolderProductoCarrito {
-        binding = ItemCarritoCBinding.inflate(LayoutInflater.from(mContext),parent, false)
+        binding = ItemCarritoCBinding.inflate(LayoutInflater.from(mContext), parent, false)
         return HolderProductoCarrito(binding.root)
     }
 
-    override fun getItemCount(): Int {
-        return productosArrayList.size
-    }
+    override fun getItemCount(): Int = productosArrayList.size
 
-    var costo : Double = 0.0
     override fun onBindViewHolder(holder: HolderProductoCarrito, position: Int) {
-        val modeloProductoCarrito = productosArrayList[position]
+        val modelo = productosArrayList[position]
 
-        val nombre = modeloProductoCarrito.nombre
-        var cantidad = modeloProductoCarrito.cantidad
-        var precioFinal = modeloProductoCarrito.precioFinal
-        var precio = modeloProductoCarrito.precio
-        var precioDesc = modeloProductoCarrito.precioDesc
+        val nombre = modelo.nombre
+        var cantidad = modelo.cantidad
 
         holder.nombrePCar.text = nombre
         holder.cantidadPCar.text = cantidad.toString()
 
-        cargarPrimeraImg(modeloProductoCarrito, holder)
+        // Cargar primera imagen del producto (si existe)
+        cargarPrimeraImg(modelo.idProducto, holder)
 
-        visualizarDescuento(modeloProductoCarrito , holder)
-
+        // Eliminar del carrito
         holder.btnEliminar.setOnClickListener {
-            eliminarProdCarrito(mContext , modeloProductoCarrito.idProducto)
+            eliminarProdCarrito(mContext, modelo.idProducto)
         }
 
-        var miPrecioFinalDouble = precioFinal.toDouble()
-
+        // Aumentar cantidad (solo cantidad)
         holder.btnAumentar.setOnClickListener {
-            if (!precioDesc.equals("0")){
-                costo = precioDesc.toDouble()
-            }else{
-                costo = precio.toDouble()
-            }
-
-            miPrecioFinalDouble += costo
             cantidad++
-
-            holder.precioFinalPCar.text = miPrecioFinalDouble.toString()
             holder.cantidadPCar.text = cantidad.toString()
-
-            var precioFinalString = miPrecioFinalDouble.toString()
-
-            calcularNuevoPrecio(mContext , modeloProductoCarrito.idProducto , precioFinalString , cantidad)
+            actualizarCantidad(mContext, modelo.idProducto, cantidad)
         }
 
+        // Disminuir cantidad (mínimo 1)
         holder.btnDisminuir.setOnClickListener {
-            if (cantidad>1){
-                if (!precioDesc.equals("0")){
-                    costo = precioDesc.toDouble()
-                }else{
-                    costo = precio.toDouble()
-                }
-
-                miPrecioFinalDouble = miPrecioFinalDouble - costo
-                cantidad --
-
-                holder.precioFinalPCar.text = miPrecioFinalDouble.toString()
+            if (cantidad > 1) {
+                cantidad--
                 holder.cantidadPCar.text = cantidad.toString()
-
-                var precioFinalString = miPrecioFinalDouble.toString()
-                calcularNuevoPrecio(mContext , modeloProductoCarrito.idProducto , precioFinalString , cantidad)
+                actualizarCantidad(mContext, modelo.idProducto, cantidad)
             }
         }
-
     }
 
-    private fun calcularNuevoPrecio(mContext: Context, idProducto: String, precioFinalString: String, cantidad: Int) {
-        val hashMap : HashMap<String , Any> = HashMap()
-
-        hashMap["cantidad"] = cantidad
-        hashMap["precioFinal"] = precioFinalString
+    /**
+     * Actualiza la cantidad del producto en el carrito del usuario autenticado.
+     * Se eliminó cualquier campo relacionado con precios/total.
+     */
+    private fun actualizarCantidad(mContext: Context, idProducto: String, cantidad: Int) {
+        val cambios = hashMapOf<String, Any>("cantidad" to cantidad)
 
         val ref = FirebaseDatabase.getInstance().getReference("Usuarios")
-        ref.child(firebaseAuth.uid!!).child("CarritoCompras").child(idProducto)
-            .updateChildren(hashMap)
+        ref.child(firebaseAuth.uid!!)
+            .child("CarritoCompras")
+            .child(idProducto)
+            .updateChildren(cambios)
             .addOnSuccessListener {
-                Toast.makeText(mContext, "Se actualizó la cantidad",Toast.LENGTH_SHORT).show()
+                Toast.makeText(mContext, "Se actualizó la cantidad", Toast.LENGTH_SHORT).show()
             }
-            .addOnFailureListener {e->
-                Toast.makeText(mContext, "${e.message}",Toast.LENGTH_SHORT).show()
-
+            .addOnFailureListener { e ->
+                Toast.makeText(mContext, e.message ?: "Error desconocido", Toast.LENGTH_SHORT).show()
             }
-
     }
 
+    /**
+     * Elimina un producto del carrito.
+     * (Fix aplicado: addOnSuccessListener correctamente agregado)
+     */
     private fun eliminarProdCarrito(mContext: Context, idProducto: String) {
-        val firebaseAuth = FirebaseAuth.getInstance()
-
         val ref = FirebaseDatabase.getInstance().getReference("Usuarios")
-        ref.child(firebaseAuth.uid!!).child("CarritoCompras").child(idProducto)
+        ref.child(firebaseAuth.uid!!)
+            .child("CarritoCompras")
+            .child(idProducto)
             .removeValue()
-            .addOnFailureListener {
-                Toast.makeText(mContext , "Producto eliminado del carrito",Toast.LENGTH_SHORT).show()
+            .addOnSuccessListener {
+                Toast.makeText(mContext, "Producto eliminado del carrito", Toast.LENGTH_SHORT).show()
             }
-            .addOnFailureListener {e->
-                Toast.makeText(mContext , "${e.message}",Toast.LENGTH_SHORT).show()
-
+            .addOnFailureListener { e ->
+                Toast.makeText(mContext, e.message ?: "Error desconocido", Toast.LENGTH_SHORT).show()
             }
-
     }
 
-    private fun visualizarDescuento(modeloProductoCarrito: ModeloProductoCarrito, holder: AdaptadorCarritoC.HolderProductoCarrito) {
-        if (!modeloProductoCarrito.precioDesc.equals("0")){
-            holder.precioFinalPCar.text = modeloProductoCarrito.precioFinal.plus(" USD")
-            holder.precioOriginalPCar.text = modeloProductoCarrito.precio.plus(" USD")
-            holder.precioOriginalPCar.paintFlags = holder.precioOriginalPCar.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
-        }else{
-            holder.precioOriginalPCar.visibility = View.GONE
-            holder.precioFinalPCar.text = modeloProductoCarrito.precioFinal.plus(" USD")
-        }
-    }
-
-    private fun cargarPrimeraImg(modeloProductoCarrito: ModeloProductoCarrito, holder: AdaptadorCarritoC.HolderProductoCarrito) {
-        val idProducto = modeloProductoCarrito.idProducto
-
+    /**
+     * Carga la primera imagen de /Productos/{id}/Imagenes (limitToFirst(1)).
+     */
+    private fun cargarPrimeraImg(idProducto: String, holder: HolderProductoCarrito) {
         val ref = FirebaseDatabase.getInstance().getReference("Productos")
-        ref.child(idProducto).child("Imagenes")
+        ref.child(idProducto)
+            .child("Imagenes")
             .limitToFirst(1)
-            .addValueEventListener(object : ValueEventListener{
+            .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    for (ds in snapshot.children){
+                    for (ds in snapshot.children) {
                         val imagenUrl = "${ds.child("imagenUrl").value}"
-
                         try {
                             Glide.with(mContext)
                                 .load(imagenUrl)
                                 .placeholder(R.drawable.item_img_producto)
                                 .into(holder.imagenPCar)
-                        }catch (e:Exception){
-
-                        }
+                        } catch (_: Exception) { /* Ignorar fallos de carga visual */ }
                     }
-
-
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    TODO("Not yet implemented")
+                    // Silenciar para evitar crasheos en UI
                 }
             })
-
     }
 
-    inner class HolderProductoCarrito(itemView : View) : RecyclerView.ViewHolder(itemView){
-        var imagenPCar = binding.imagenPCar
-        var nombrePCar = binding.nombrePCar
-        var precioFinalPCar = binding.precioFinalPCar
-        var precioOriginalPCar = binding.precioOriginalPCar
-        var btnDisminuir = binding.btnDisminuir
-        var cantidadPCar = binding.cantidadPCar
-        var btnAumentar = binding.btnAumentar
-        var btnEliminar = binding.btnEliminar
+    inner class HolderProductoCarrito(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val imagenPCar = binding.imagenPCar
+        val nombrePCar = binding.nombrePCar
+        val cantidadPCar = binding.cantidadPCar
+        val btnAumentar = binding.btnAumentar
+        val btnDisminuir = binding.btnDisminuir
+        val btnEliminar = binding.btnEliminar
     }
-
-
 }

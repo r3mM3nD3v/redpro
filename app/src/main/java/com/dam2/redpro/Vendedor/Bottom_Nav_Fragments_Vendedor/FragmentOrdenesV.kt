@@ -15,175 +15,147 @@ import androidx.appcompat.widget.PopupMenu
 import com.dam2.redpro.Adaptadores.AdaptadorOrdenCompraV
 import com.dam2.redpro.Modelos.ModeloOrdenCompra
 import com.dam2.redpro.databinding.FragmentOrdenesVBinding
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 
+/**
+ * Lista de órdenes (Vendedor)
+ * - Ver todas, buscar por ID (prefijo) y filtrar por estado.
+ */
 class FragmentOrdenesV : Fragment() {
 
-    private lateinit var binding : FragmentOrdenesVBinding
-    private lateinit var mContext : Context
+    private var _binding: FragmentOrdenesVBinding? = null
+    private val binding get() = _binding!!
 
-    private lateinit var ordenesArrayList : ArrayList<ModeloOrdenCompra>
-    private lateinit var ordenAdaptador : AdaptadorOrdenCompraV
+    private lateinit var mContext: Context
+
+    private val ordenesArrayList = ArrayList<ModeloOrdenCompra>()
+    private lateinit var ordenAdaptador: AdaptadorOrdenCompraV
 
     private val handler = Handler(Looper.getMainLooper())
-    private var searchRunnable : Runnable? = null
+    private var searchRunnable: Runnable? = null
 
     override fun onAttach(context: Context) {
         this.mContext = context
         super.onAttach(context)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        binding = FragmentOrdenesVBinding.inflate(inflater, container , false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FragmentOrdenesVBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        ordenAdaptador = AdaptadorOrdenCompraV(mContext, ordenesArrayList)
+        binding.ordenesRv.adapter = ordenAdaptador
+
         verOrdenes()
 
-        binding.IbFiltroEstado.setOnClickListener {
-            filtrarOrdenMenu()
-        }
+        binding.IbFiltroEstado.setOnClickListener { filtrarOrdenMenu() }
 
+        // Búsqueda por ID con debounce de 1s
         binding.etBuscarOrdenId.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-
-            }
-
-            override fun onTextChanged( id : CharSequence?, start: Int, before: Int, count: Int) {
-                val idOrden = id.toString()
-
-                searchRunnable?.let { handler.removeCallbacks (it)  }
-
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(id: CharSequence?, start: Int, before: Int, count: Int) {
+                searchRunnable?.let { handler.removeCallbacks(it) }
+                val query = id?.toString().orEmpty()
                 searchRunnable = Runnable {
-                    if (idOrden.isNotEmpty()){
-                        /*Comprobamos que no sea un campo vacío*/
-                        buscarOrdenPorId(idOrden)
-                    }else{
-                        /*Si el campo está vacío que muestre todas las órdenes*/
-                        verOrdenes()
-                    }
+                    if (query.isNotEmpty()) buscarOrdenPorId(query) else verOrdenes()
                 }
-
-                handler.postDelayed(searchRunnable!! , 1000)
-
-
-
+                handler.postDelayed(searchRunnable!!, 1000)
             }
-
-            override fun afterTextChanged(s: Editable?) {
-
-            }
+            override fun afterTextChanged(s: Editable?) {}
         })
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        searchRunnable?.let { handler.removeCallbacks(it) }
+        _binding = null
+    }
+
+    /** Búsqueda por prefijo de ID: orderByChild("idOrden").startAt(id).endAt(id + "\uf8ff") */
     private fun buscarOrdenPorId(idOrden: String) {
-        ordenesArrayList = ArrayList()
+        val ref = FirebaseDatabase.getInstance()
+            .getReference("Ordenes")
+            .orderByChild("idOrden")
+            .startAt(idOrden)
+            .endAt(idOrden + "\uf8ff")
 
-        val ref = FirebaseDatabase.getInstance().getReference("Ordenes")
-            .orderByChild("idOrden").startAt(idOrden).endAt(idOrden + "\uf8ff")
-        ref.addValueEventListener(object : ValueEventListener{
+        ref.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.exists()){
-                    /*Si el id de la orden existe*/
-                    ordenesArrayList.clear()
-                    for (ds in snapshot.children){
-                        val modelo = ds.getValue(ModeloOrdenCompra::class.java)
-                        ordenesArrayList.add(modelo!!)
+                ordenesArrayList.clear()
+                if (snapshot.exists()) {
+                    for (ds in snapshot.children) {
+                        ds.getValue(ModeloOrdenCompra::class.java)?.let { ordenesArrayList.add(it) }
                     }
-
-                    ordenAdaptador = AdaptadorOrdenCompraV(mContext , ordenesArrayList)
-                    binding.ordenesRv.adapter = ordenAdaptador
                 }
+                ordenAdaptador.notifyDataSetChanged()
             }
-
             override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
+                // no-op
             }
         })
-
     }
 
+    /** Menú de filtro por estado con IDs consistentes. */
     private fun filtrarOrdenMenu() {
-        val popupMenu = PopupMenu(mContext , binding.IbFiltroEstado)
-
-        popupMenu.menu.add(Menu.NONE, 0 , 0 , "Todos")
-        popupMenu.menu.add(Menu.NONE, 1 , 1 , "Solicitud Recibida")
-        popupMenu.menu.add(Menu.NONE, 2 , 2 , "Pago Pendiente")
-        popupMenu.menu.add(Menu.NONE, 3 , 3 , "En preparación")
-        popupMenu.menu.add(Menu.NONE, 4 , 4 , "Entregado")
-        popupMenu.menu.add(Menu.NONE, 5 , 5 , "Cancelado")
-
-        popupMenu.show()
-
-        popupMenu.setOnMenuItemClickListener { item->
-            val itemId = item.itemId
-
-            when(itemId){
-                0-> verOrdenes()
-                1-> filtroOrden("Solicitud recibida")
-                2-> filtroOrden("Pago Pendiente")
-                3-> filtroOrden("En preparación")
-                4-> filtroOrden("Entregado")
-                5-> filtroOrden("Cancelado")
+        val popupMenu = PopupMenu(mContext, binding.IbFiltroEstado).apply {
+            menu.add(Menu.NONE, 0, 0, "Todos")
+            menu.add(Menu.NONE, 1, 1, "Solicitud recibida")
+            menu.add(Menu.NONE, 2, 2, "En preparación")
+            menu.add(Menu.NONE, 3, 3, "Entregado")
+            menu.add(Menu.NONE, 4, 4, "Cancelado")
+            setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    0 -> verOrdenes()
+                    1 -> filtroOrden("Solicitud recibida")
+                    2 -> filtroOrden("En preparación")
+                    3 -> filtroOrden("Entregado")
+                    4 -> filtroOrden("Cancelado")
+                }
+                true
             }
-
-            return@setOnMenuItemClickListener true
         }
-
+        popupMenu.show()
     }
 
-    private fun filtroOrden(estado : String) {
-        ordenesArrayList = ArrayList()
+    /** Filtro eficiente por estado usando equalTo(estado). */
+    private fun filtroOrden(estado: String) {
+        val ref = FirebaseDatabase.getInstance()
+            .getReference("Ordenes")
+            .orderByChild("estadoOrden")
+            .equalTo(estado)
 
-        val ref = FirebaseDatabase.getInstance().getReference("Ordenes")
-        ref.addValueEventListener(object : ValueEventListener{
+        ref.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 ordenesArrayList.clear()
-
-                for (ds in snapshot.children){
-
-                    val modeloOrden = ds.getValue(ModeloOrdenCompra::class.java)
-                    when(modeloOrden?.estadoOrden){
-                        //Filtrar orden según el estado
-                        estado -> ordenesArrayList.add(modeloOrden)
-                    }
+                for (ds in snapshot.children) {
+                    ds.getValue(ModeloOrdenCompra::class.java)?.let { ordenesArrayList.add(it) }
                 }
-
-                ordenAdaptador = AdaptadorOrdenCompraV(mContext, ordenesArrayList)
-                binding.ordenesRv.adapter = ordenAdaptador
+                ordenAdaptador.notifyDataSetChanged()
             }
-
             override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
+                // no-op
             }
         })
-
     }
 
+    /** Carga todas las órdenes (listener de una sola vez). */
     private fun verOrdenes() {
-        ordenesArrayList = ArrayList()
         val ref = FirebaseDatabase.getInstance().getReference("Ordenes")
-        ref.addValueEventListener(object : ValueEventListener{
+        ref.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 ordenesArrayList.clear()
-                for (ds in snapshot.children){
-                    val modelo = ds.getValue(ModeloOrdenCompra::class.java)
-                    ordenesArrayList.add(modelo!!)
+                for (ds in snapshot.children) {
+                    ds.getValue(ModeloOrdenCompra::class.java)?.let { ordenesArrayList.add(it) }
                 }
-
-                ordenAdaptador = AdaptadorOrdenCompraV(mContext , ordenesArrayList)
-                binding.ordenesRv.adapter = ordenAdaptador
+                ordenAdaptador.notifyDataSetChanged()
             }
-
             override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
+                // no-op
             }
         })
     }
-
 }

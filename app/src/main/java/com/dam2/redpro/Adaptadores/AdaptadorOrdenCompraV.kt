@@ -7,78 +7,76 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
-import com.dam2.redpro.Cliente.Orden.DetalleOrdenCActivity
 import com.dam2.redpro.Constantes
 import com.dam2.redpro.Modelos.ModeloOrdenCompra
 import com.dam2.redpro.R
 import com.dam2.redpro.Vendedor.Orden.DetalleOrdenVActivity
 import com.dam2.redpro.databinding.ItemOrdenCompraBinding
 
-class AdaptadorOrdenCompraV : RecyclerView.Adapter<AdaptadorOrdenCompraV.HolderOrdenCompra>{
+/**
+ * Adapter de órdenes del Vendedor completamente limpio:
+ * - Muestra ID, fecha y estado (color visual informativo).
+ */
+class AdaptadorOrdenCompraV(
+    private val mContext: Context,
+    var ordenesArrayList: ArrayList<ModeloOrdenCompra>
+) : RecyclerView.Adapter<AdaptadorOrdenCompraV.HolderOrdenCompra>() {
 
-    private lateinit var binding : ItemOrdenCompraBinding
-
-    private var mContext : Context
-    var ordenesArrayList : ArrayList<ModeloOrdenCompra>
-
-    constructor(mContext: Context, ordenesArrayList: ArrayList<ModeloOrdenCompra>) {
-        this.mContext = mContext
-        this.ordenesArrayList = ordenesArrayList
-    }
+    private lateinit var binding: ItemOrdenCompraBinding
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HolderOrdenCompra {
-        binding = ItemOrdenCompraBinding.inflate(LayoutInflater.from(mContext),parent,false)
+        binding = ItemOrdenCompraBinding.inflate(LayoutInflater.from(mContext), parent, false)
         return HolderOrdenCompra(binding.root)
     }
 
-    override fun getItemCount(): Int {
-        return ordenesArrayList.size
-    }
+    override fun getItemCount(): Int = ordenesArrayList.size
 
     override fun onBindViewHolder(holder: HolderOrdenCompra, position: Int) {
-        val ordenCompra = ordenesArrayList[position]
+        val orden = ordenesArrayList[position]
 
-        val idOrden = ordenCompra.idOrden
-        val tiempoOrden = ordenCompra.tiempoOrden
-        val costo = ordenCompra.costo
-        val estadoOrden = ordenCompra.estadoOrden
+        // Datos base
+        val idOrden = orden.idOrden
+        val tiempoOrden = orden.tiempoOrden
+        val estadoOriginal = orden.estadoOrden
 
+        // Normalizar estado: eliminar palabra "Pago"
+        val estadoMostrado = when (estadoOriginal) {
+            "Pago Pendiente" -> "Pendiente"
+            else -> estadoOriginal
+        }
+
+        // Mostrar datos
         holder.idOrdenItem.text = idOrden
-        holder.costoOrdenItem.text = costo
-        holder.estadoOrdenItem.text = estadoOrden
+        holder.estadoOrdenItem.text = estadoMostrado
 
-        if (estadoOrden.equals("Solicitud recibida")){
-            holder.estadoOrdenItem.setTextColor(ContextCompat.getColor(mContext, R.color.azul_marino_oscuro))
-        }else if (estadoOrden.equals("Pago Pendiente")){
-            holder.estadoOrdenItem.setTextColor(ContextCompat.getColor(mContext, R.color.morado))
+        // Asignar color por estado
+        val colorEstado = when (estadoMostrado) {
+            "Solicitud recibida" -> R.color.azul_marino_oscuro
+            "Pendiente" -> R.color.morado
+            "En Preparación" -> R.color.naranja
+            "Entregado" -> R.color.verde_oscuro2
+            "Cancelado" -> R.color.rojo
+            else -> R.color.negro
         }
-        else if (estadoOrden.equals("En Preparación")){
-            holder.estadoOrdenItem.setTextColor(ContextCompat.getColor(mContext, R.color.naranja))
-        }else if (estadoOrden.equals("Entregado")){
-            holder.estadoOrdenItem.setTextColor(ContextCompat.getColor(mContext, R.color.verde_oscuro2))
-        }else if (estadoOrden.equals("Cancelado")){
-            holder.estadoOrdenItem.setTextColor(ContextCompat.getColor(mContext, R.color.rojo))
-        }
+        holder.estadoOrdenItem.setTextColor(ContextCompat.getColor(mContext, colorEstado))
 
-        val fecha = Constantes().obtenerFecha(tiempoOrden.toLong())
+        // Fecha legible
+        holder.fechaOrdenItem.text = Constantes().obtenerFecha(tiempoOrden.toLong())
 
-        binding.fechaOrdenItem.text = fecha
-
+        // Ver detalle de orden
         holder.ibSiguiente.setOnClickListener {
-            val intent = Intent(mContext, DetalleOrdenVActivity::class.java)
-            intent.putExtra("idOrden", idOrden)
+            val intent = Intent(mContext, DetalleOrdenVActivity::class.java).apply {
+                putExtra("idOrden", idOrden)
+            }
             mContext.startActivity(intent)
         }
-
     }
 
-    inner class HolderOrdenCompra (itemView : View) : RecyclerView.ViewHolder(itemView){
-        var idOrdenItem = binding.idOrdenItem
-        var fechaOrdenItem = binding.fechaOrdenItem
-        var estadoOrdenItem = binding.estadoOrdenItem
-        var costoOrdenItem = binding.costoOrdenItem
-        var ibSiguiente = binding.ibSiguiente
+    /** ViewHolder para los elementos de la lista de órdenes */
+    inner class HolderOrdenCompra(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val idOrdenItem = binding.idOrdenItem
+        val fechaOrdenItem = binding.fechaOrdenItem
+        val estadoOrdenItem = binding.estadoOrdenItem
+        val ibSiguiente = binding.ibSiguiente
     }
-
-
 }

@@ -31,204 +31,201 @@ import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
+import java.util.Locale
 
-class SeleccionarUbicacionActivity : AppCompatActivity() , OnMapReadyCallback{
+/**
+ * Selección de ubicación con Google Maps + Places
+ * - Devuelve latitud/longitud/dirección al caller.
+ */
+class SeleccionarUbicacionActivity : AppCompatActivity(), OnMapReadyCallback {
 
-    private lateinit var binding : ActivitySeleccionarUbicacionBinding
+    private lateinit var binding: ActivitySeleccionarUbicacionBinding
 
-    private companion object{
-        private const val DEFAULT_ZOOM = 15
+    private companion object {
+        private const val DEFAULT_ZOOM = 15f
     }
 
-    private var mMap : GoogleMap?=null
+    private var mMap: GoogleMap? = null
+    private var mPlaceClient: PlacesClient? = null
+    private var mFusedLocationProviderClient: FusedLocationProviderClient? = null
 
-    private var mPlaceClient : PlacesClient?=null
-    private var mFusedLocationProviderClient : FusedLocationProviderClient?=null
-
-    private var mLastKnowLocation : Location?=null
-    private var selectedLatitude : Double?=null
-    private var selectedLongitude : Double ?=null
-    private var address = ""
+    private var mLastKnowLocation: Location? = null
+    private var selectedLatitude: Double? = null
+    private var selectedLongitude: Double? = null
+    private var address: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySeleccionarUbicacionBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Panel inferior oculto hasta que haya una selección
         binding.listoLl.visibility = View.GONE
 
+        // Cargar el mapa
         val mapFragment = supportFragmentManager.findFragmentById(R.id.MapFragment) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        Places.initialize(this, getString(R.string.mi_google_maps_api_key))
+        // Inicializar Places/Location
+        if (!Places.isInitialized()) {
+            Places.initialize(applicationContext, getString(R.string.mi_google_maps_api_key))
+        }
         mPlaceClient = Places.createClient(this)
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
-        val autoCompleteSupportMapFragment = supportFragmentManager.findFragmentById(R.id.autocomplete_fragment)
-        as AutocompleteSupportFragment
-
-        val placeList = arrayOf(
-            Place.Field.ID,
-            Place.Field.NAME,
-            Place.Field.ADDRESS,
-            Place.Field.LAT_LNG
+        // Configurar Autocomplete
+        val autoCompleteFrag = supportFragmentManager.findFragmentById(R.id.autocomplete_fragment)
+                as AutocompleteSupportFragment
+        autoCompleteFrag.setPlaceFields(
+            listOf(Place.Field.ID, Place.Field.NAME, Place.Field.ADDRESS, Place.Field.LAT_LNG)
         )
-
-        autoCompleteSupportMapFragment.setPlaceFields(listOf(*placeList))
-
-        autoCompleteSupportMapFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener{
+        autoCompleteFrag.setOnPlaceSelectedListener(object : PlaceSelectionListener {
             override fun onPlaceSelected(place: Place) {
-                val id = place.id
-                val name = place.name
                 val latlng = place.latLng
-
                 selectedLatitude = latlng?.latitude
                 selectedLongitude = latlng?.longitude
-                address = place.address?: ""
-
-                addMarker(latlng , name , address)
-
+                address = place.address.orEmpty()
+                if (latlng != null) {
+                    addMarker(latlng, place.name.orEmpty(), address)
+                }
             }
-            override fun onError(p0: Status) {
-
+            override fun onError(status: Status) {
+                Toast.makeText(this@SeleccionarUbicacionActivity, "Error: ${status.statusMessage}", Toast.LENGTH_SHORT).show()
             }
         })
 
+        // Botón GPS: centrar en ubicación actual
         binding.IbGps.setOnClickListener {
-            if (isGpsActivated()){
+            if (isGpsActivated()) {
                 solicitarPermisoLocalizacion.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-            }else{
-                Toast.makeText(this,
-                    "La ubicación no está activada. Actívela para mostrar la ubicación actual.",
-                    Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(
+                    this,
+                    "La ubicación no está activada. Actívela para usar el GPS.",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
 
+        // Confirmar selección
         binding.BtnListo.setOnClickListener {
-            val intent = Intent()
-            intent.putExtra("latitud", selectedLatitude)
-            intent.putExtra("longitud", selectedLongitude)
-            intent.putExtra("direccion", address)
+            val lat = selectedLatitude
+            val lng = selectedLongitude
+            if (lat == null || lng == null || address.isBlank()) {
+                Toast.makeText(this, "Seleccione un punto en el mapa o use el buscador", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val intent = Intent().apply {
+                putExtra("latitud", lat)
+                putExtra("longitud", lng)
+                putExtra("direccion", address)
+            }
             setResult(Activity.RESULT_OK, intent)
             finish()
         }
-
     }
 
-    private fun elegirLugarActual(){
-        if (mMap==null){
-            return
-        }
-
-        detectAndShowDeviceLocationMap()
-
-    }
-
+    /** Solicita permiso y, si se concede, muestra ubicación actual. */
     @SuppressLint("MissingPermission")
-    private fun detectAndShowDeviceLocationMap(){
-        try {
-            val locationResult = mFusedLocationProviderClient!!.lastLocation
-            locationResult.addOnSuccessListener { location->
-                if (location!=null){
-                    mLastKnowLocation = location
-
-                    selectedLatitude = location.latitude
-                    selectedLongitude = location.longitude
-
-                    val latlng = LatLng(selectedLatitude!!, selectedLongitude!!)
-                    mMap!!.moveCamera(CameraUpdateFactory.newLatLngZoom(latlng, DEFAULT_ZOOM.toFloat()))
-                    mMap!!.animateCamera(CameraUpdateFactory.zoomTo(DEFAULT_ZOOM.toFloat()))
-                    direccionLatLng(latlng)
-                }
+    private val solicitarPermisoLocalizacion: ActivityResultLauncher<String> =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { seConcede ->
+            if (seConcede) {
+                mMap?.isMyLocationEnabled = true
+                elegirLugarActual()
+            } else {
+                Toast.makeText(this, "Permiso de ubicación denegado", Toast.LENGTH_SHORT).show()
             }
-                .addOnFailureListener { e->
-                    Toast.makeText(applicationContext, "${e.message}",Toast.LENGTH_SHORT).show()
-                }
-        }catch (e:Exception){
-
         }
+
+    /** Si el mapa está listo, intenta detectar la ubicación actual y pintarla. */
+    private fun elegirLugarActual() {
+        if (mMap == null) return
+        detectAndShowDeviceLocationMap()
     }
 
+    /** Obtiene la última ubicación conocida y centra el mapa; resuelve dirección. */
+    @SuppressLint("MissingPermission")
+    private fun detectAndShowDeviceLocationMap() {
+        try {
+            mFusedLocationProviderClient?.lastLocation
+                ?.addOnSuccessListener { location ->
+                    if (location != null) {
+                        mLastKnowLocation = location
+                        selectedLatitude = location.latitude
+                        selectedLongitude = location.longitude
+                        val latlng = LatLng(location.latitude, location.longitude)
+                        mMap?.apply {
+                            moveCamera(CameraUpdateFactory.newLatLngZoom(latlng, DEFAULT_ZOOM))
+                            animateCamera(CameraUpdateFactory.zoomTo(DEFAULT_ZOOM))
+                        }
+                        direccionLatLng(latlng)
+                    } else {
+                        Toast.makeText(this, "No se pudo obtener la ubicación actual", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                ?.addOnFailureListener { e ->
+                    Toast.makeText(this, "Error de ubicación: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+        } catch (_: Exception) { /* no-op */ }
+    }
+
+    /** Comprueba si el GPS/Network provider están activos. */
     private fun isGpsActivated(): Boolean {
         val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-
-        var gpsEnable = false
-        var networkEnable = false
-
-        try {
-            gpsEnable = lm.isProviderEnabled(LocationManager.GPS_PROVIDER)
-        }catch (e:Exception){
-
-        }
-
-        try {
-            networkEnable = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
-        }catch (e:Exception){
-
-        }
-
-        return !(!gpsEnable && !networkEnable)
-
+        val gpsEnable = runCatching { lm.isProviderEnabled(LocationManager.GPS_PROVIDER) }.getOrDefault(false)
+        val networkEnable = runCatching { lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER) }.getOrDefault(false)
+        return gpsEnable || networkEnable
     }
-
-    @SuppressLint("MissingPermission")
-    private val solicitarPermisoLocalizacion : ActivityResultLauncher<String> =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()){seConcede->
-            if (seConcede){
-                mMap!!.isMyLocationEnabled = true
-                elegirLugarActual()
-            }else{
-                Toast.makeText(this,
-                    "Permiso de ubicación denegado",
-                    Toast.LENGTH_SHORT).show()
-            }
-        }
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+        // Pedir permiso apenas el mapa esté listo (mejor UX).
         solicitarPermisoLocalizacion.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-        mMap!!.setOnMapClickListener {latlng->
+
+        // Tap en el mapa: seleccionar punto y obtener dirección
+        mMap?.setOnMapClickListener { latlng ->
             selectedLatitude = latlng.latitude
             selectedLongitude = latlng.longitude
-
             direccionLatLng(latlng)
         }
-
     }
 
+    /** Resuelve dirección por lat/lng; añade marcador y muestra panel Listo. */
     private fun direccionLatLng(latlng: LatLng) {
-        val geoCoder = Geocoder(this)
         try {
-            val addressList = geoCoder.getFromLocation(latlng.latitude, latlng.longitude, 1)
-            val mAddress = addressList!![0]
-
-            val addressLine = mAddress.getAddressLine(0)
-            val subLocality = mAddress.subLocality
-            address = "${addressLine}"
-            addMarker(latlng,"${subLocality}", "${addressLine}")
-
-        }catch (e: Exception){
-
+            val geocoder = Geocoder(this, Locale.getDefault())
+            val addressList = geocoder.getFromLocation(latlng.latitude, latlng.longitude, 1)
+            if (!addressList.isNullOrEmpty()) {
+                val mAddress = addressList[0]
+                val addressLine = mAddress.getAddressLine(0) ?: ""
+                val subLocality = mAddress.subLocality ?: ""
+                address = addressLine
+                addMarker(latlng, subLocality, addressLine)
+            } else {
+                // Fallback si geocoder no retorna nada
+                address = "${latlng.latitude}, ${latlng.longitude}"
+                addMarker(latlng, "Ubicación seleccionada", address)
+            }
+        } catch (e: Exception) {
+            // Fallback ante error de geocoder
+            address = "${latlng.latitude}, ${latlng.longitude}"
+            addMarker(latlng, "Ubicación seleccionada", address)
         }
-
     }
 
-    private fun addMarker(latlng : LatLng, titulo : String , direccion : String){
-        mMap!!.clear()
-        try {
-            val markerOptions = MarkerOptions()
-            markerOptions.position(latlng)
-            markerOptions.title("${titulo}")
-            markerOptions.snippet("${direccion}")
-            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+    /** Dibuja marcador, centra cámara y habilita panel de confirmación. */
+    private fun addMarker(latlng: LatLng, titulo: String, direccion: String) {
+        val map = mMap ?: return
+        map.clear()
+        val markerOptions = MarkerOptions()
+            .position(latlng)
+            .title(titulo)
+            .snippet(direccion)
+            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
 
-            mMap!!.addMarker(markerOptions)
-            mMap!!.moveCamera(CameraUpdateFactory.newLatLngZoom(latlng, DEFAULT_ZOOM.toFloat()))
-            binding.listoLl.visibility = View.VISIBLE
-            binding.lugarSelecTv.text = direccion
-
-        }catch (e:Exception){
-
-        }
+        map.addMarker(markerOptions)
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(latlng, DEFAULT_ZOOM))
+        binding.listoLl.visibility = View.VISIBLE
+        binding.lugarSelecTv.text = direccion
     }
 }

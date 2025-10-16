@@ -7,63 +7,56 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.dam2.redpro.Adaptadores.AdaptadorCategoriaV
-import com.dam2.redpro.Adaptadores.AdaptadorProducto
 import com.dam2.redpro.Modelos.ModeloCategoria
-import com.dam2.redpro.Modelos.ModeloProducto
 import com.dam2.redpro.databinding.FragmentMisProductosVBinding
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 
+/**
+ * Vista "Mis Productos" (Vendedor)
+ * - Muestra las categorías para navegar a los productos por categoría.
+ */
 class FragmentMisProductosV : Fragment() {
 
-    private lateinit var binding : FragmentMisProductosVBinding
-    private lateinit var mContext : Context
+    private lateinit var binding: FragmentMisProductosVBinding
+    private lateinit var mContext: Context
 
-
-
-    private lateinit var categoriasArrayList : ArrayList<ModeloCategoria>
-    private lateinit var adaptadorCategoriaV : AdaptadorCategoriaV
+    private lateinit var categoriasArrayList: ArrayList<ModeloCategoria>
+    private lateinit var adaptadorCategoriaV: AdaptadorCategoriaV
 
     override fun onAttach(context: Context) {
         mContext = context
         super.onAttach(context)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentMisProductosVBinding.inflate(LayoutInflater.from(mContext), container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        //listarProductos()
         listarCategorias()
     }
 
+    /** Carga y muestra las categorías ordenadas por nombre. */
     private fun listarCategorias() {
         categoriasArrayList = ArrayList()
-        val ref = FirebaseDatabase.getInstance().getReference("Categorias").orderByChild("categoria")
-        ref.addValueEventListener(object : ValueEventListener{
-            override fun onDataChange(snapshot: DataSnapshot) {
-                categoriasArrayList.clear()
-                for (ds in snapshot.children){
-                    val modelo = ds.getValue(ModeloCategoria::class.java)
-                    categoriasArrayList.add(modelo!!)
+        FirebaseDatabase.getInstance()
+            .getReference("Categorias")
+            .orderByChild("categoria")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    categoriasArrayList.clear()
+                    for (ds in snapshot.children) {
+                        ds.getValue(ModeloCategoria::class.java)?.let { categoriasArrayList.add(it) }
+                    }
+                    adaptadorCategoriaV = AdaptadorCategoriaV(mContext, categoriasArrayList)
+                    binding.categoriasRV.adapter = adaptadorCategoriaV
                 }
-                adaptadorCategoriaV = AdaptadorCategoriaV(mContext, categoriasArrayList)
-                binding.categoriasRV.adapter = adaptadorCategoriaV
-            }
 
-            override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
-            }
-        })
+                override fun onCancelled(error: DatabaseError) {
+                    // no-op para evitar crash si falla la lectura
+                }
+            })
     }
-
-
-
-
 }

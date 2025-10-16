@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".Vendedor.Nav_Fragments_Vendedor.FragmentCategoriasV">
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:layout_marginTop="15dp">
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/imgCategorias"
@@ -20,7 +22,6 @@
             android:layout_width="100dp"
             android:layout_height="100dp"/>
 
-        <!--Nombre de la categoría-->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -35,30 +36,25 @@
                 android:drawablePadding="10dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
-
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!--Agregar categoria a la BD-->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAgregarCat"
             android:text="@string/btnAgregarCat"
-            app:cornerRadius="8dp"
             android:textAllCaps="true"
-            android:layout_marginTop="15dp"
+            app:cornerRadius="8dp"
             android:layout_gravity="center"
+            android:layout_marginTop="15dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
-        <!--Lista de categorías-->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvCategorias"
             android:layout_margin="5dp"
-            tools:listitem="@layout/item_categoria_v"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_categoria_v"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
-
-
     </androidx.appcompat.widget.LinearLayoutCompat>
 
 </RelativeLayout>

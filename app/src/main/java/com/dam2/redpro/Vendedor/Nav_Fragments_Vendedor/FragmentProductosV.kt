@@ -14,246 +14,220 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.dam2.redpro.Adaptadores.AdaptadorProducto
 import com.dam2.redpro.Modelos.ModeloProducto
 import com.dam2.redpro.databinding.FragmentProductosVBinding
-import com.google.android.gms.common.internal.Objects
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 
+/**
+ * Listado de productos (Vendedor) con paginación simple y búsqueda por nombre.
+ */
 class FragmentProductosV : Fragment() {
 
-    private lateinit var binding : FragmentProductosVBinding
-    private lateinit var mContext : Context
+    private var _binding: FragmentProductosVBinding? = null
+    private val binding get() = _binding!!
 
-    private lateinit var productoArrayList : ArrayList<ModeloProducto>
-    private lateinit var adaptadorProductos : AdaptadorProducto
+    private lateinit var mContext: Context
 
+    private val productoArrayList: ArrayList<ModeloProducto> = ArrayList()
+    private lateinit var adaptadorProductos: AdaptadorProducto
+
+    // Paginación por clave
     private val cantidadProductos = 4
-    private var ultimoProductoVisible : DataSnapshot ?= null
-    private var primerProductoVisible : DataSnapshot ?= null
-
+    private var ultimoProductoVisible: DataSnapshot? = null
+    private var primerProductoVisible: DataSnapshot? = null
     private var cargandoDatos = false
     private var primeraPagina = true
 
+    // Debounce búsqueda
     private val handler = Handler(Looper.getMainLooper())
-    private var searchRunnable : Runnable?= null
+    private var searchRunnable: Runnable? = null
 
     override fun onAttach(context: Context) {
         mContext = context
         super.onAttach(context)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        // Inflate the layout for this fragment
-        binding = FragmentProductosVBinding.inflate(inflater, container , false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FragmentProductosVBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        listarProductos()
 
+        // Recycler
+        adaptadorProductos = AdaptadorProducto(mContext, productoArrayList)
+        binding.productosRV.apply {
+            adapter = adaptadorProductos
+            layoutManager = GridLayoutManager(mContext, 2)
+        }
+
+        // Búsqueda con debounce (1s)
         binding.etBuscarProducto.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-
-            }
-
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(nombreP: CharSequence?, start: Int, before: Int, count: Int) {
-                 val nombreProducto = nombreP.toString()
+                searchRunnable?.let { handler.removeCallbacks(it) }
+                val query = nombreP?.toString().orEmpty()
 
                 searchRunnable = Runnable {
-                    if (nombreProducto.isNotEmpty()){
-                        /*Buscar un producto*/
-                        buscarProducto(nombreProducto)
-                    }else{
-                        /*Mostrar todos los productos*/
+                    if (query.isNotEmpty()) {
+                        buscarProducto(query)
+                    } else {
+                        // reset paginación y recargar primera página
+                        ultimoProductoVisible = null
+                        primerProductoVisible = null
+                        primeraPagina = true
                         listarProductos()
                     }
                 }
-
-                handler.postDelayed(searchRunnable!! , 1000)
+                handler.postDelayed(searchRunnable!!, 1000)
             }
-
-            override fun afterTextChanged(s: Editable?) {
-
-            }
+            override fun afterTextChanged(s: Editable?) {}
         })
 
+        // Paginación
         binding.btnAnterior.isEnabled = false
-
         binding.btnAnterior.setOnClickListener {
-            if (!cargandoDatos && !primeraPagina){
-                cargarPaginaAnterior()
-            }
+            if (!cargandoDatos && !primeraPagina) cargarPaginaAnterior()
         }
-
         binding.btnSiguiente.setOnClickListener {
-            if (!cargandoDatos){
-                cargarPaginaSiguiente()
-            }
+            if (!cargandoDatos) cargarPaginaSiguiente()
         }
 
-        productoArrayList = ArrayList()
-        adaptadorProductos = AdaptadorProducto(mContext , productoArrayList)
-        binding.productosRV.adapter = adaptadorProductos
-
-        binding.productosRV.layoutManager = GridLayoutManager(mContext , 2)
-
+        // Primera carga (una sola vez)
         listarProductos()
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // Evita fugas del Handler cuando se destruye la vista
+        searchRunnable?.let { handler.removeCallbacks(it) }
+        _binding = null
+    }
+
+    /** Página siguiente (por clave) */
     private fun cargarPaginaSiguiente() {
         listarProductos()
         primeraPagina = false
         binding.btnAnterior.isEnabled = true
     }
 
+    /** Página anterior (por clave) */
     private fun cargarPaginaAnterior() {
-        if (primerProductoVisible!=null){
-            cargandoDatos = true
-
-            val ref = FirebaseDatabase.getInstance().getReference("Productos")
-
-            var query = ref.orderByKey().endBefore(primerProductoVisible!!.key).limitToLast(cantidadProductos)
-
-            query.addListenerForSingleValueEvent(object : ValueEventListener{
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    productoArrayList.clear()
-                    if (snapshot.hasChildren()){
-                        primerProductoVisible = snapshot.children.first()
-                        ultimoProductoVisible = snapshot.children.last()
-
-                        for (ds in snapshot.children){
-                            val modeloProducto = ds.getValue(ModeloProducto::class.java)
-                            if (modeloProducto!=null){
-                                productoArrayList.add(modeloProducto)
-                            }
-                        }
-
-                        adaptadorProductos.notifyDataSetChanged()
-
-                        comprobarPrimeraPagina()
-
-                    }
-
-                    cargandoDatos = false
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    cargandoDatos = false
-                }
-            })
-        }
-    }
-
-    private fun comprobarPrimeraPagina() {
-        val ref = FirebaseDatabase.getInstance().getReference("Productos")
-
-        ref.orderByKey().limitToFirst(1).addListenerForSingleValueEvent(object : ValueEventListener{
-            override fun onDataChange(snapshot: DataSnapshot) {
-                 if (snapshot.exists()){
-                     /*Obtener el primer producto de la BD*/
-                     val primerProdBD = snapshot.children.first()
-
-                     /*Verificar si el primer elemento de BD es igual al primerProductoVisible*/
-                     primeraPagina = primerProductoVisible?.key == primerProdBD.key /*true*/
-
-                     binding.btnAnterior.isEnabled = !primeraPagina /*false*/
-                     binding.btnSiguiente.isEnabled = true
-                 }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
-            }
-        })
-    }
-
-    private fun buscarProducto(nombreProducto: String) {
-        productoArrayList = ArrayList()
+        val first = primerProductoVisible ?: return
+        cargandoDatos = true
 
         val ref = FirebaseDatabase.getInstance().getReference("Productos")
-            .orderByChild("nombre").startAt(nombreProducto).endAt(nombreProducto + "\uf8ff")
-        ref.addValueEventListener(object : ValueEventListener{
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.exists()){
-                    /*Si el producto existe*/
-                    for (ds in snapshot.children){
-                        val producto = ds.getValue(ModeloProducto::class.java)
-                        productoArrayList.add(producto!!)
-                    }
+        val query = ref.orderByKey()
+            .endBefore(first.key)
+            .limitToLast(cantidadProductos)
 
-                    adaptadorProductos = AdaptadorProducto(mContext , productoArrayList)
-                    binding.productosRV.adapter = adaptadorProductos
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
-            }
-        })
-
-    }
-
-    private fun listarProductos() {
-         cargandoDatos = true /*La carga de datos ha empezado*/
-
-        val ref = FirebaseDatabase.getInstance().getReference("Productos")
-        var query = ref.orderByKey().limitToFirst(cantidadProductos)
-
-        if (ultimoProductoVisible != null){
-            /*Si No estamos en la primera página*/
-            /*Esta consulta nos indica que se debe empezar a recuperar datos después de la clave especificada
-            * que en este caso es ultiProductoVisible*/
-            query = ref.orderByKey().startAfter(ultimoProductoVisible!!.key).limitToFirst(cantidadProductos)
-            primeraPagina = false
-        }else{
-            /*Estamos en la primera página*/
-            primeraPagina = true
-        }
-
-        query.addListenerForSingleValueEvent(object : ValueEventListener{
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 productoArrayList.clear()
-
-                if (snapshot.hasChildren()){
-                    primerProductoVisible = snapshot.children.first() /*Almacenamos el primer producto visible*/
-                    ultimoProductoVisible = snapshot.children.last()  /*Almacenamos el último producto visible*/
-
-                    for (ds in snapshot.children){
-
-                        val modeloProducto = ds.getValue(ModeloProducto::class.java)
-                        if (modeloProducto != null){
-                            productoArrayList.add(modeloProducto)
-                        }
+                if (snapshot.hasChildren()) {
+                    primerProductoVisible = snapshot.children.first()
+                    ultimoProductoVisible = snapshot.children.last()
+                    for (ds in snapshot.children) {
+                        ds.getValue(ModeloProducto::class.java)?.let { productoArrayList.add(it) }
                     }
+                    adaptadorProductos.notifyDataSetChanged()
+                    comprobarPrimeraPagina()
+                }
+                cargandoDatos = false
+            }
+            override fun onCancelled(error: DatabaseError) {
+                cargandoDatos = false
+            }
+        })
+    }
 
+    /** Revisa si estamos en la primera página para deshabilitar "Anterior". */
+    private fun comprobarPrimeraPagina() {
+        FirebaseDatabase.getInstance().getReference("Productos")
+            .orderByKey()
+            .limitToFirst(1)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (snapshot.exists()) {
+                        val primerProdBD = snapshot.children.first()
+                        primeraPagina = primerProductoVisible?.key == primerProdBD.key
+                        binding.btnAnterior.isEnabled = !primeraPagina
+                        binding.btnSiguiente.isEnabled = true
+                    }
+                }
+                override fun onCancelled(error: DatabaseError) {
+                    // no-op
+                }
+            })
+    }
+
+    /** Búsqueda por nombre (prefijo). */
+    private fun buscarProducto(nombreProducto: String) {
+        val ref = FirebaseDatabase.getInstance()
+            .getReference("Productos")
+            .orderByChild("nombre")
+            .startAt(nombreProducto)
+            .endAt(nombreProducto + "\uf8ff")
+
+        ref.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                productoArrayList.clear()
+                if (snapshot.exists()) {
+                    for (ds in snapshot.children) {
+                        ds.getValue(ModeloProducto::class.java)?.let { productoArrayList.add(it) }
+                    }
+                }
+                adaptadorProductos.notifyDataSetChanged()
+
+                // En modo búsqueda, desactiva paginación para evitar confusión
+                binding.btnAnterior.isEnabled = false
+                binding.btnSiguiente.isEnabled = false
+            }
+            override fun onCancelled(error: DatabaseError) {
+                // no-op
+            }
+        })
+    }
+
+    /** Lista productos con paginación por clave. */
+    private fun listarProductos() {
+        cargandoDatos = true
+
+        val ref = FirebaseDatabase.getInstance().getReference("Productos")
+        val query: Query = if (ultimoProductoVisible != null) {
+            // Siguientes
+            primeraPagina = false
+            ref.orderByKey()
+                .startAfter(ultimoProductoVisible!!.key)
+                .limitToFirst(cantidadProductos)
+        } else {
+            // Primera página
+            primeraPagina = true
+            ref.orderByKey().limitToFirst(cantidadProductos)
+        }
+
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                productoArrayList.clear()
+                if (snapshot.hasChildren()) {
+                    primerProductoVisible = snapshot.children.first()
+                    ultimoProductoVisible = snapshot.children.last()
+
+                    for (ds in snapshot.children) {
+                        ds.getValue(ModeloProducto::class.java)?.let { productoArrayList.add(it) }
+                    }
                     adaptadorProductos.notifyDataSetChanged()
 
                     binding.btnAnterior.isEnabled = !primeraPagina
                     binding.btnSiguiente.isEnabled = snapshot.childrenCount.toInt() == cantidadProductos
-
-                }else{
-                    /*Deshabilitar el botón de siguiente si no hay más productos*/
+                } else {
+                    // No hay más productos
                     binding.btnSiguiente.isEnabled = false
                 }
-
-                cargandoDatos = false /*La carga de datos ha terminado*/
+                cargandoDatos = false
             }
-
             override fun onCancelled(error: DatabaseError) {
-                cargandoDatos = false /*La carga de datos ha terminado*/
+                cargandoDatos = false
             }
         })
-
-
-
-
-
-
-
-
-
     }
-
 }

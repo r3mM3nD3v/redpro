@@ -3,7 +3,6 @@ package com.dam2.redpro.Adaptadores
 import android.app.Dialog
 import android.content.Context
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
@@ -15,91 +14,71 @@ import com.github.chrisbanes.photoview.PhotoView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.imageview.ShapeableImageView
 
-class AdaptadorImgSlider : RecyclerView.Adapter<AdaptadorImgSlider.HolderImagenSlider>{
-
-    private lateinit var binding : ItemImagenSliderBinding
-    private var context : Context
-    private var imagenArrayList : ArrayList<ModeloImgSlider>
-
-    constructor(context: Context, imagenArrayList: ArrayList<ModeloImgSlider>) {
-        this.context = context
-        this.imagenArrayList = imagenArrayList
-    }
+class AdaptadorImgSlider(
+    private val context: Context,
+    private val imagenArrayList: ArrayList<ModeloImgSlider>
+) : RecyclerView.Adapter<AdaptadorImgSlider.HolderImagenSlider>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HolderImagenSlider {
-        binding = ItemImagenSliderBinding.inflate(LayoutInflater.from(context),parent, false)
-        return HolderImagenSlider(binding.root)
+        val inflater = LayoutInflater.from(parent.context)
+        val binding = ItemImagenSliderBinding.inflate(inflater, parent, false)
+        return HolderImagenSlider(binding)
     }
 
-    override fun getItemCount(): Int {
-         return imagenArrayList.size
-    }
+    override fun getItemCount(): Int = imagenArrayList.size
 
     override fun onBindViewHolder(holder: HolderImagenSlider, position: Int) {
-         val modeloImagenSlider = imagenArrayList[position]
+        val item = imagenArrayList[position]
+        holder.bind(item, position, imagenArrayList.size)
+    }
 
-        val imagenUrl = modeloImagenSlider.imagenUrl
-        val imagenContador = "${position+1}/${imagenArrayList.size}" //2/4 3/4
-        holder.imagenContadorTv.text = imagenContador
+    inner class HolderImagenSlider(
+        private val binding: ItemImagenSliderBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
+
+        val imagenSIV: ShapeableImageView = binding.imagenSIV
+        val imagenContadorTv: TextView = binding.imagenContadorTv
+
+        fun bind(item: ModeloImgSlider, position: Int, total: Int) {
+            imagenContadorTv.text = "${position + 1}/$total"
+
+            // Carga de imagen
+            try {
+                Glide.with(itemView) // evita fugas con context de Activity
+                    .load(item.imagenUrl.ifBlank { null })
+                    .placeholder(R.drawable.item_img_producto)
+                    .error(R.drawable.item_img_producto)
+                    .into(imagenSIV)
+            } catch (_: Exception) {}
+
+            // Tap para zoom
+            itemView.setOnClickListener {
+                // Usa bindingAdapterPosition por seguridad
+                val pos = bindingAdapterPosition
+                if (pos != RecyclerView.NO_POSITION) {
+                    zoomImg(imagenArrayList[pos].imagenUrl)
+                }
+            }
+        }
+    }
+
+    /** Muestra un diálogo con zoom de la imagen usando PhotoView. */
+    private fun zoomImg(imagen: String) {
+        val dialog = Dialog(context).apply { setContentView(R.layout.zoom_imagen) }
+
+        val pv: PhotoView = dialog.findViewById(R.id.zoomImg)
+        val btnCerrar: MaterialButton = dialog.findViewById(R.id.cerrarZoom)
 
         try {
             Glide.with(context)
-                .load(imagenUrl)
+                .load(imagen.ifBlank { null })
                 .placeholder(R.drawable.item_img_producto)
-                .into(holder.imagenSIV)
-        }catch (e:Exception){
-
-        }
-
-        holder.itemView.setOnClickListener {
-            zoomImg(imagenUrl)
-        }
-
-    }
-
-    inner class HolderImagenSlider(itemView : View) : RecyclerView.ViewHolder(itemView){
-        var imagenSIV : ShapeableImageView = binding.imagenSIV
-        var imagenContadorTv : TextView = binding.imagenContadorTv
-    }
-
-    private fun zoomImg(imagen : String){
-        val pv : PhotoView
-        val btnCerrar : MaterialButton
-
-        val dialog = Dialog(context)
-
-        dialog.setContentView(R.layout.zoom_imagen)
-
-        pv = dialog.findViewById(R.id.zoomImg)
-        btnCerrar = dialog.findViewById(R.id.cerrarZoom)
-
-        try {
-            Glide.with(context)
-                .load(imagen)
-                .placeholder(R.drawable.item_img_producto)
+                .error(R.drawable.item_img_producto)
                 .into(pv)
-        }catch (e:Exception){
+        } catch (_: Exception) {}
 
-        }
-
-        btnCerrar.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        dialog.show()
+        btnCerrar.setOnClickListener { dialog.dismiss() }
         dialog.setCanceledOnTouchOutside(false)
+        dialog.show()
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

@@ -8,13 +8,15 @@
     android:layout_height="match_parent"
     tools:context=".Vendedor.ListaClientes.ListaClientesActivity">
 
+    <!-- Toolbar simple con back y título -->
     <RelativeLayout
         android:id="@+id/toolbarRL"
         android:layout_width="match_parent"
         android:layout_height="55dp">
 
+        <!-- OJO: id alineado con binding.IbRegresar -->
         <ImageButton
-            android:id="@+id/Ib_regresar"
+            android:id="@+id/IbRegresar"
             android:src="@drawable/ico_regresar"
             android:background="@android:color/transparent"
             android:layout_centerVertical="true"
@@ -34,9 +36,9 @@
             android:background="#ccc"
             android:layout_width="match_parent"
             android:layout_height="1dp"/>
-
     </RelativeLayout>
 
+    <!-- Lista de clientes -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/clienteRV"
         android:layout_below="@id/toolbarRL"

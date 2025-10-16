@@ -35,28 +35,16 @@
             android:name=".Vendedor.ListaClientes.ListaClientesActivity"
             android:exported="false" />
         <activity
-            android:name=".Calificacion.MostrarCalificacionesActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Calificacion.CalificarProductoActivity"
-            android:exported="false" />
-        <activity
             android:name=".Vendedor.Productos.ProductosCatVActivity"
             android:exported="false" />
         <activity
             android:name=".Vendedor.Orden.DetalleOrdenVActivity"
             android:exported="false" />
         <activity
-            android:name=".Cliente.Pago.PagoActivity"
-            android:exported="false" />
-        <activity
             android:name=".Cliente.Orden.DetalleOrdenCActivity"
             android:exported="false" />
         <activity
             android:name=".Cliente.ActualizarPasswordActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Cliente.RecuperarPasswordActivity"
             android:exported="false" />
         <activity
             android:name=".Mapas.SeleccionarUbicacionActivity"
@@ -66,9 +54,6 @@
             android:exported="false" />
         <activity
             android:name=".Cliente.ProductosC.ProductosCatCActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Cliente.LoginTelActivity"
             android:exported="false" />
         <activity
             android:name=".Vendedor.Productos.AgregarProductoActivity"

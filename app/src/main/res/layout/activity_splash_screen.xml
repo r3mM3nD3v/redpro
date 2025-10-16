@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center">
-
+-->
         <com.airbnb.lottie.LottieAnimationView
             app:lottie_fileName="splash_tienda.json"
             app:lottie_imageAssetsFolder="assets"
@@ -24,13 +24,12 @@
             android:layout_height="300dp"/>
 
         <TextView
+            android:text="@string/app_name"
             android:textSize="25sp"
             android:textStyle="bold"
             android:layout_marginTop="25dp"
-            android:text="@string/app_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
-
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 

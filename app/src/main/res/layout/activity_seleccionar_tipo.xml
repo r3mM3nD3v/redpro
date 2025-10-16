@@ -14,11 +14,13 @@
         android:orientation="vertical"
         android:gravity="center">
 
+        <!-- Ícono representativo del vendedor -->
         <androidx.appcompat.widget.AppCompatImageView
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:src="@drawable/vendedor"/>
 
+        <!-- Botón para acceder como vendedor -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/tipoVendedor"
             android:text="@string/tipoVendedor"
@@ -28,12 +30,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
+        <!-- Ícono representativo del cliente -->
         <androidx.appcompat.widget.AppCompatImageView
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:layout_marginTop="15dp"
             android:src="@drawable/cliente"/>
 
+        <!-- Botón para acceder como cliente -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/tipoCliente"
             android:text="@string/tipoCliente"
@@ -43,7 +47,5 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
-
     </androidx.appcompat.widget.LinearLayoutCompat>
-
 </RelativeLayout>

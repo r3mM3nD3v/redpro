@@ -24,10 +24,14 @@ import com.dam2.redpro.databinding.ActivityMainVendedorBinding
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
 
-class MainActivityVendedor : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListener {
+/**
+ * Home del vendedor:
+ * - Drawer con navegación a Inicio, Mi Tienda, Categorías, Productos, Mis Productos y Mis Órdenes.
+ */
+class MainActivityVendedor : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
-    private lateinit var binding : ActivityMainVendedorBinding
-    private var firebaseAuth : FirebaseAuth?=null
+    private lateinit var binding: ActivityMainVendedorBinding
+    private val firebaseAuth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
 
     private var dobleClick = false
     private val handler = Handler(Looper.getMainLooper())
@@ -40,89 +44,70 @@ class MainActivityVendedor : AppCompatActivity() , NavigationView.OnNavigationIt
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
 
-        firebaseAuth = FirebaseAuth.getInstance()
         comprobarSesion()
 
         binding.navigationView.setNavigationItemSelectedListener(this)
 
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true){
+        // Back: si el drawer está abierto, ciérralo; si no, doble tap para salir
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                 if (dobleClick){
-                     /*Salimos de la app*/
-                     finish()
-                     return
-                 }
-
+                if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    binding.drawerLayout.closeDrawer(GravityCompat.START)
+                    return
+                }
+                if (dobleClick) {
+                    finish()
+                    return
+                }
                 dobleClick = true
-                Toast.makeText(this@MainActivityVendedor, "Presione nuevamente para salir",
-                    Toast.LENGTH_SHORT).show()
-
-                handler.postDelayed({dobleClick = false}, 2000)
+                Toast.makeText(this@MainActivityVendedor, "Presione nuevamente para salir", Toast.LENGTH_SHORT).show()
+                handler.postDelayed({ dobleClick = false }, 2000)
             }
         })
 
         val toggle = ActionBarDrawerToggle(
-            this,
-            binding.drawerLayout,
-            toolbar,
-            R.string.open_drawer,
-            R.string.close_drawer
+            this, binding.drawerLayout, toolbar,
+            R.string.open_drawer, R.string.close_drawer
         )
-
         binding.drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
 
         replaceFragment(FragmentInicioV())
         binding.navigationView.setCheckedItem(R.id.op_inicio_v)
-
     }
 
-    private fun cerrarSesion(){
-        firebaseAuth!!.signOut()
-        startActivity(Intent(applicationContext, SeleccionarTipoActivity::class.java))
-        finish()
-        Toast.makeText(applicationContext, "Has cerrado sesión", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun comprobarSesion(){
-        /*Si el usuario no ha iniciado sesión, que lo diriga a OpcionesLogin*/
-        if (firebaseAuth!!.currentUser==null){
-            startActivity(Intent(applicationContext, SeleccionarTipoActivity::class.java))
-        }else{
-            Toast.makeText(applicationContext,"Usuario en línea", Toast.LENGTH_SHORT).show()
+    /** Si no hay usuario autenticado, volver a SeleccionarTipo y limpiar back stack. */
+    private fun comprobarSesion() {
+        if (firebaseAuth.currentUser == null) {
+            startActivity(Intent(this, SeleccionarTipoActivity::class.java))
+            finishAffinity()
+        } else {
+            Toast.makeText(this, "Usuario en línea", Toast.LENGTH_SHORT).show()
         }
     }
 
+    private fun cerrarSesion() {
+        firebaseAuth.signOut()
+        startActivity(Intent(this, SeleccionarTipoActivity::class.java))
+        finishAffinity()
+        Toast.makeText(this, "Has cerrado sesión", Toast.LENGTH_SHORT).show()
+    }
+
     private fun replaceFragment(fragment: Fragment) {
-        supportFragmentManager
-            .beginTransaction()
+        supportFragmentManager.beginTransaction()
             .replace(R.id.navFragment, fragment)
             .commit()
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        when (item.itemId){
-            R.id.op_inicio_v->{
-                replaceFragment(FragmentInicioV())
-            }
-            R.id.op_mi_tienda_v->{
-                replaceFragment(FragmentMiTiendaV())
-            }
-            R.id.op_categorias_v->{
-                replaceFragment(FragmentCategoriasV())
-            }
-            R.id.op_productos_v->{
-                replaceFragment(FragmentProductosV())
-            }
-            R.id.op_cerrar_sesion_v->{
-                cerrarSesion()
-            }
-            R.id.op_mis_productos_v->{
-                replaceFragment(FragmentMisProductosV())
-            }
-            R.id.op_mis_ordenes_v->{
-                replaceFragment(FragmentOrdenesV())
-            }
+        when (item.itemId) {
+            R.id.op_inicio_v -> replaceFragment(FragmentInicioV())
+            R.id.op_mi_tienda_v -> replaceFragment(FragmentMiTiendaV())
+            R.id.op_categorias_v -> replaceFragment(FragmentCategoriasV())
+            R.id.op_productos_v -> replaceFragment(FragmentProductosV())
+            R.id.op_mis_productos_v -> replaceFragment(FragmentMisProductosV())
+            R.id.op_mis_ordenes_v -> replaceFragment(FragmentOrdenesV())
+            R.id.op_cerrar_sesion_v -> cerrarSesion()
         }
         binding.drawerLayout.closeDrawer(GravityCompat.START)
         return true

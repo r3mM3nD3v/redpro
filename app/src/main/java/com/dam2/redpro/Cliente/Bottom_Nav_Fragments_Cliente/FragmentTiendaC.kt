@@ -7,34 +7,33 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.dam2.redpro.Adaptadores.AdaptadorCategoriaC
-import com.dam2.redpro.Adaptadores.AdaptadorProductoAleatorio
 import com.dam2.redpro.Modelos.ModeloCategoria
-import com.dam2.redpro.Modelos.ModeloProducto
 import com.dam2.redpro.databinding.FragmentTiendaCBinding
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 
+/**
+ * Tienda (Cliente)
+ * - Muestra saludo y dirección del usuario.
+ * - Lista categorías disponibles.
+ */
 class FragmentTiendaC : Fragment() {
 
-    private lateinit var binding : FragmentTiendaCBinding
-    private lateinit var mContext : Context
+    private lateinit var binding: FragmentTiendaCBinding
+    private lateinit var mContext: Context
     private lateinit var firebaseAuth: FirebaseAuth
-
-    private lateinit var categoriaArrayList : ArrayList<ModeloCategoria>
-    private lateinit var adaptadorCategoria : AdaptadorCategoriaC
-
-    private lateinit var productosArrayList : ArrayList<ModeloProducto>
-    private lateinit var adaptadorProducto : AdaptadorProductoAleatorio
+    private lateinit var categoriaArrayList: ArrayList<ModeloCategoria>
+    private lateinit var adaptadorCategoria: AdaptadorCategoriaC
 
     override fun onAttach(context: Context) {
         mContext = context
         super.onAttach(context)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         binding = FragmentTiendaCBinding.inflate(LayoutInflater.from(mContext), container, false)
         return binding.root
     }
@@ -45,73 +44,48 @@ class FragmentTiendaC : Fragment() {
 
         leerInfoCliente()
         listarCategorias()
-        obtenerProductosAlea()
     }
 
-    private fun leerInfoCliente(){
-        val ref = FirebaseDatabase.getInstance().getReference("Usuarios")
-        ref.child("${firebaseAuth.uid}")
-            .addValueEventListener(object : ValueEventListener{
+    /** Lee nombre y dirección del usuario autenticado para mostrar saludo. */
+    private fun leerInfoCliente() {
+        val uid = firebaseAuth.uid ?: return
+        FirebaseDatabase.getInstance()
+            .getReference("Usuarios")
+            .child(uid)
+            .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val nombres = "${snapshot.child("nombres").value}"
                     val direccion = "${snapshot.child("direccion").value}"
-                    binding.bienvenidaTXT.setText("Bienvenido(a): ${nombres}")
-                    binding.direccionTXT.setText("${direccion}")
+                    binding.bienvenidaTXT.text = "Bienvenido(a): $nombres"
+                    binding.direccionTXT.text = direccion
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    TODO("Not yet implemented")
+                    // Silenciar para no romper UI si falla la lectura
                 }
             })
     }
 
-    private fun obtenerProductosAlea() {
-        productosArrayList = ArrayList()
-
-        var ref = FirebaseDatabase.getInstance().getReference("Productos")
-        ref.addValueEventListener(object : ValueEventListener{
-            override fun onDataChange(snapshot: DataSnapshot) {
-                productosArrayList.clear()
-                for (ds in snapshot.children){
-                    val modeloProducto = ds.getValue(ModeloProducto::class.java)
-                    productosArrayList.add((modeloProducto!!))
-                }
-
-                val listaAleatoria = productosArrayList.shuffled().take(10)
-
-                adaptadorProducto = AdaptadorProductoAleatorio(mContext, listaAleatoria)
-                binding.productosAleatRV.adapter = adaptadorProducto
-            }
-            override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
-            }
-        })
-    }
-
+    /** Carga y muestra las categorías, ordenadas por nombre. */
     private fun listarCategorias() {
         categoriaArrayList = ArrayList()
 
-        val ref = FirebaseDatabase.getInstance().getReference("Categorias")
+        FirebaseDatabase.getInstance()
+            .getReference("Categorias")
             .orderByChild("categoria")
-        ref.addValueEventListener(object : ValueEventListener{
-            override fun onDataChange(snapshot: DataSnapshot) {
-                categoriaArrayList.clear()
-                for (ds in snapshot.children){
-                    val modeloCat = ds.getValue(ModeloCategoria::class.java)
-                    categoriaArrayList.add(modeloCat!!)
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    categoriaArrayList.clear()
+                    for (ds in snapshot.children) {
+                        ds.getValue(ModeloCategoria::class.java)?.let { categoriaArrayList.add(it) }
+                    }
+                    adaptadorCategoria = AdaptadorCategoriaC(mContext, categoriaArrayList)
+                    binding.categoriasRV.adapter = adaptadorCategoria
                 }
 
-                adaptadorCategoria = AdaptadorCategoriaC(mContext, categoriaArrayList)
-                binding.categoriasRV.adapter = adaptadorCategoria
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
-            }
-        })
-
-
+                override fun onCancelled(error: DatabaseError) {
+                    // Silenciar para no romper UI si falla la lectura
+                }
+            })
     }
-
-
 }

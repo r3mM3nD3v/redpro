@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".Vendedor.Nav_Fragments_Vendedor.FragmentProductosV">
 
     <LinearLayout
@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!--Buscar un prodcuto-->
+        <!-- campo de busqueda-->
         <EditText
             android:id="@+id/etBuscarProducto"
             android:hint="@string/etBuscarProducto"
@@ -21,20 +21,18 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
-        <!--Productos-->
+        <!-- lista de productos -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/productosRV"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-            tools:listitem="@layout/item_producto"
             android:layout_marginBottom="60dp"
-            app:spanCount="2"/>
-
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+            app:spanCount="2"
+            tools:listitem="@layout/item_producto"/>
     </LinearLayout>
 
-
-    <!--Botones-->
+    <!-- Contiene botones para moverse entre páginas de productos.-->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -42,28 +40,26 @@
         android:layout_alignParentBottom="true"
         android:gravity="center">
 
-        <!--Botón anterior-->
+        <!-- Botón para retroceder a la página anterior -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAnterior"
             android:text="@string/btnAnterior"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:icon="@drawable/ico_flecha_anterior"
             android:backgroundTint="@color/azul_marino_oscuro"
+            app:icon="@drawable/ico_flecha_anterior"
             app:cornerRadius="8dp"/>
 
-        <!--Botón siguiente-->
+        <!-- Botón para avanzar a la siguiente página -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSiguiente"
             android:text="@string/btnSiguiente"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
+            android:backgroundTint="@color/azul_marino_oscuro"
             app:icon="@drawable/ic_flecha_siguiente"
             app:iconGravity="textEnd"
-            android:backgroundTint="@color/azul_marino_oscuro"
             app:cornerRadius="8dp"/>
-
     </LinearLayout>
-
 </RelativeLayout>

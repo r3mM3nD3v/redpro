@@ -5,35 +5,35 @@ import com.dam2.redpro.Adaptadores.AdaptadorProductoC
 import com.dam2.redpro.Modelos.ModeloProducto
 import java.util.Locale
 
-class FiltroProducto (
-    private val adaptador : AdaptadorProductoC,
-    private val filtroLista : ArrayList<ModeloProducto>
-) : Filter(){
+/**
+ * Filtro para búsqueda de productos por nombre.
+ */
+class FiltroProducto(
+    private val adaptador: AdaptadorProductoC,
+    private val listaOriginal: ArrayList<ModeloProducto>
+) : Filter() {
 
-    override fun performFiltering(filtro: CharSequence?): FilterResults {
-        var filtro = filtro
+    override fun performFiltering(query: CharSequence?): FilterResults {
         val resultados = FilterResults()
+        val textoFiltro = query?.toString()?.trim()?.uppercase(Locale.getDefault()).orEmpty()
 
-        if (!filtro.isNullOrEmpty()){
-            filtro = filtro.toString().uppercase(Locale.getDefault())
-            val filtroProducto = ArrayList<ModeloProducto>()
-            for (i in filtroLista.indices){
-                if (filtroLista[i].nombre.uppercase(Locale.getDefault()).contains(filtro)){
-                    filtroProducto.add(filtroLista[i])
-                }
+        val listaFiltrada = if (textoFiltro.isNotEmpty()) {
+            listaOriginal.filter { producto ->
+                producto.nombre.uppercase(Locale.getDefault()).contains(textoFiltro)
             }
-            resultados.count = filtroProducto.size
-            resultados.values = filtroProducto
-        }else{
-            resultados.count = filtroLista.size
-            resultados.values = filtroLista
+        } else {
+            listaOriginal
         }
+
+        resultados.values = ArrayList(listaFiltrada)
+        resultados.count = listaFiltrada.size
         return resultados
     }
 
-    override fun publishResults(filtro: CharSequence?, resultados: FilterResults) {
-        adaptador.productosArrayList = resultados.values as ArrayList<ModeloProducto>
+    @Suppress("UNCHECKED_CAST")
+    override fun publishResults(query: CharSequence?, resultados: FilterResults) {
+        val listaActualizada = resultados.values as? ArrayList<ModeloProducto> ?: arrayListOf()
+        adaptador.productosArrayList = listaActualizada
         adaptador.notifyDataSetChanged()
-
     }
 }

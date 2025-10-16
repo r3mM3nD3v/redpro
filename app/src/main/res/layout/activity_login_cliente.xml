@@ -8,12 +8,14 @@
     android:layout_height="match_parent"
     tools:context=".Cliente.LoginClienteActivity">
 
+    <!-- Contenedor principal -->
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="15dp">
 
+        <!-- Título -->
         <TextView
             android:text="@string/txtLoginC"
             android:layout_gravity="center"
@@ -22,6 +24,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
+        <!-- Ícono -->
         <androidx.appcompat.widget.AppCompatImageView
             android:layout_width="80dp"
             android:layout_height="80dp"
@@ -30,7 +33,7 @@
             android:layout_marginTop="10dp"
             android:layout_marginBottom="10dp"/>
 
-        <!--Email-->
+        <!-- Campo de email -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -43,10 +46,9 @@
                 android:drawablePadding="5dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
-
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!--Password-->
+        <!-- Campo de contraseña -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -60,10 +62,9 @@
                 android:drawablePadding="5dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
-
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!--Login de cliente-->
+        <!-- Botón para iniciar sesión -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnLoginC"
             android:text="@string/btnLoginC"
@@ -74,46 +75,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="15dp"
-            android:gravity="center">
+        <!-- 🔻 Eliminado bloque de inicio de sesión con Google (no implementado) -->
 
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="100dp"
-                android:layout_height="60dp">
-
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/btnLoginGoogle"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_google_login"
-                    android:layout_width="25dp"
-                    android:layout_height="30dp"/>
-
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="100dp"
-                android:layout_height="60dp"
-                android:layout_marginStart="20dp">
-
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/btnLoginTel"
-                    android:layout_width="25dp"
-                    android:layout_height="30dp"
-                    android:src="@drawable/ic_tel_login"
-                    android:layout_gravity="center"/>
-
-
-            </com.google.android.material.card.MaterialCardView>
-
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-        <!--Txt-->
+        <!-- Texto “¿No tienes cuenta?” -->
         <TextView
             android:text="@string/txtNoCuenta"
             android:layout_gravity="end"
@@ -122,31 +86,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
-        <!--Registrar cliente-->
+        <!-- Link para registrarse -->
         <TextView
             android:id="@+id/tvRegistrarC"
             android:text="@string/tvRegistrarC"
             android:layout_gravity="end"
             android:layout_marginEnd="10dp"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="5dp"
             android:textSize="17sp"
             android:textStyle="bold"
             android:textColor="@color/celeste_oscuro"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
-        <!--Recuperar contraseña-->
-        <TextView
-            android:id="@+id/tvRecuperarPass"
-            android:text="@string/tvRecuperarPass"
-            android:layout_gravity="end"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="10dp"
-            android:textSize="17sp"
-            android:textStyle="bold"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-
     </androidx.appcompat.widget.LinearLayoutCompat>
-
 </RelativeLayout>

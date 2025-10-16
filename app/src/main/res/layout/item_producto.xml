@@ -17,17 +17,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <!--Nota del descuento-->
-            <TextView
-                android:id="@+id/item_nota_p"
-                android:text="@string/item_nota_p"
-                android:padding="5dp"
-                android:visibility="gone"
-                android:background="@drawable/fondo_verde"
-                android:layout_marginTop="5dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-
             <ImageButton
                 android:id="@+id/Ib_editar"
                 android:padding="7dp"
@@ -82,33 +71,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp">
-
-            <!--Precio con descuento del producto-->
-            <TextView
-                android:id="@+id/item_precio_p_desc"
-                android:text="@string/item_precio_p_desc"
-                android:visibility="gone"
-                android:layout_marginEnd="10dp"
-                android:textSize="16sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-
-            <!--Precio del producto-->
-            <TextView
-                android:id="@+id/item_precio_p"
-                android:text="@string/item_precio_p"
-                android:layout_toEndOf="@id/item_precio_p_desc"
-                android:textSize="16sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-
         </RelativeLayout>
-
-
-
-
-
-
     </androidx.appcompat.widget.LinearLayoutCompat>
 
 </com.google.android.material.card.MaterialCardView>

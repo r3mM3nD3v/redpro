@@ -6,31 +6,29 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import com.dam2.redpro.Adaptadores.AdaptadorOrdenCompra
 import com.dam2.redpro.Modelos.ModeloOrdenCompra
-import com.dam2.redpro.R
 import com.dam2.redpro.databinding.FragmentMisOrdenesCBinding
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 
+/**
+ * Fragment que muestra las órdenes del cliente actual.
+ */
 class FragmentMisOrdenesC : Fragment() {
 
-    private lateinit var binding : FragmentMisOrdenesCBinding
-
-    private lateinit var mContext : Context
-    private lateinit var ordenesArrayList : ArrayList<ModeloOrdenCompra>
-    private lateinit var ordenAdaptador : AdaptadorOrdenCompra
+    private lateinit var binding: FragmentMisOrdenesCBinding
+    private lateinit var mContext: Context
+    private lateinit var ordenesArrayList: ArrayList<ModeloOrdenCompra>
+    private lateinit var ordenAdaptador: AdaptadorOrdenCompra
 
     override fun onAttach(context: Context) {
-        this.mContext = context
+        mContext = context
         super.onAttach(context)
-
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentMisOrdenesCBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -40,18 +38,29 @@ class FragmentMisOrdenesC : Fragment() {
         verOrdenes()
     }
 
+    /**
+     * Carga las órdenes del usuario autenticado desde Firebase.
+     */
     private fun verOrdenes() {
         ordenesArrayList = ArrayList()
 
-        val ref = FirebaseDatabase.getInstance().getReference("Ordenes")
         val uid = FirebaseAuth.getInstance().currentUser?.uid
+        if (uid.isNullOrBlank()) {
+            Toast.makeText(mContext, "Sesión no válida", Toast.LENGTH_SHORT).show()
+            return
+        }
 
+        val ref = FirebaseDatabase.getInstance().getReference("Ordenes")
         ref.orderByChild("ordenadoPor").equalTo(uid)
-            .addValueEventListener(object : ValueEventListener{
+            .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    for (ds in snapshot.children){
-                        val modelo = ds.getValue(ModeloOrdenCompra::class.java)
-                        ordenesArrayList.add(modelo!!)
+                    ordenesArrayList.clear()
+                    for (ds in snapshot.children) {
+                        ds.getValue(ModeloOrdenCompra::class.java)?.let { ordenesArrayList.add(it) }
+                    }
+
+                    if (ordenesArrayList.isEmpty()) {
+                        Toast.makeText(mContext, "No tienes órdenes registradas", Toast.LENGTH_SHORT).show()
                     }
 
                     ordenAdaptador = AdaptadorOrdenCompra(mContext, ordenesArrayList)
@@ -59,10 +68,8 @@ class FragmentMisOrdenesC : Fragment() {
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    TODO("Not yet implemented")
+                    Toast.makeText(mContext, "Error al cargar órdenes", Toast.LENGTH_SHORT).show()
                 }
             })
     }
-
-
 }

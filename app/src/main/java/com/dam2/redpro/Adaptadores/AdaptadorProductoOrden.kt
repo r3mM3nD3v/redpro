@@ -8,47 +8,32 @@ import androidx.recyclerview.widget.RecyclerView
 import com.dam2.redpro.Modelos.ModeloProductoOrden
 import com.dam2.redpro.databinding.ItemProductoOrdenBinding
 
-class AdaptadorProductoOrden : RecyclerView.Adapter<AdaptadorProductoOrden.HolderProductoOrden> {
+/**
+ * Adapter para listar productos dentro de una orden.
+ * - Muestra solo nombre y cantidad.
+ */
+class AdaptadorProductoOrden(
+    private val mContext: Context,
+    private var productosArrayList: ArrayList<ModeloProductoOrden>
+) : RecyclerView.Adapter<AdaptadorProductoOrden.HolderProductoOrden>() {
 
-    private lateinit var binding : ItemProductoOrdenBinding
-    private var mContext : Context
-    private var productosArrayList : ArrayList<ModeloProductoOrden>
-
-    constructor(mContext: Context, productosArrayList: ArrayList<ModeloProductoOrden>) {
-        this.mContext = mContext
-        this.productosArrayList = productosArrayList
-    }
+    private lateinit var binding: ItemProductoOrdenBinding
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HolderProductoOrden {
-        binding = ItemProductoOrdenBinding.inflate(LayoutInflater.from(mContext), parent , false)
+        binding = ItemProductoOrdenBinding.inflate(LayoutInflater.from(mContext), parent, false)
         return HolderProductoOrden(binding.root)
     }
 
-    override fun getItemCount(): Int {
-        return productosArrayList.size
-    }
+    override fun getItemCount(): Int = productosArrayList.size
 
     override fun onBindViewHolder(holder: HolderProductoOrden, position: Int) {
-        val modeloProductoOrden = productosArrayList[position]
-
-        val nombre = modeloProductoOrden.nombre
-        val precio = modeloProductoOrden.precio
-        val cantidad = modeloProductoOrden.cantidad
-        val precioFinal = modeloProductoOrden.precioFinal
-
-        holder.itemNombreP.text = nombre
-        holder.itemPrecioP.text = "Precio unidad: ${precio.plus(" USD")}"
-        holder.itemCantidadP.text = "Cantidad: ${cantidad}"
-        holder.itemPrecioFinalP.text = "Precio suma total: ${precioFinal.plus(" USD")}"
+        val item = productosArrayList[position]
+        holder.itemNombreP.text = item.nombre
+        holder.itemCantidadP.text = "Cantidad: ${item.cantidad}"
     }
 
-    inner class HolderProductoOrden (itemView : View) : RecyclerView.ViewHolder(itemView){
-        var itemNombreP = binding.itemNombreP
-        var itemPrecioP = binding.itemPrecioP
-        var itemCantidadP = binding.itemCantidadP
-        var itemPrecioFinalP = binding.itemPrecioFinalP
+    inner class HolderProductoOrden(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val itemNombreP = binding.itemNombreP
+        val itemCantidadP = binding.itemCantidadP
     }
-
-
-
 }

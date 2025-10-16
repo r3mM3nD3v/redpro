@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".Vendedor.Bottom_Nav_Fragments_Vendedor.FragmentOrdenesV">
 
     <RelativeLayout
         android:id="@+id/toolbarRL"
-        android:padding="5dp"
-        android:background="#f4f6f6"
         android:layout_width="match_parent"
-        android:layout_height="55dp">
+        android:layout_height="55dp"
+        android:padding="5dp"
+        android:background="#f4f6f6">
 
-        <!--Id de una orden-->
+        <!-- Campo para buscar una orden por su ID -->
         <EditText
             android:id="@+id/etBuscarOrdenId"
             android:hint="@string/etBuscarOrdenId"
@@ -23,7 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
-        <!--Seleccionar un estado-->
+        <!-- Botón de filtro para seleccionar un estado de orden -->
         <ImageButton
             android:id="@+id/Ib_filtro_estado"
             android:src="@drawable/ic_filtro"
@@ -33,8 +33,6 @@
             android:padding="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
-
-
     </RelativeLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -43,5 +41,4 @@
         tools:listitem="@layout/item_orden_compra"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
-
 </LinearLayout>

@@ -1,119 +1,122 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Layout: item_cliente.xml
+    Contexto: .Vendedor.ListaClientes.ListaClientesActivity
+
+    Propósito:
+    Representar la información de un cliente dentro del listado que el vendedor visualiza.
+    Se usa dentro de un RecyclerView en la actividad de ListaClientesActivity.
+
+    Estructura:
+    - MaterialCardView → Tarjeta principal con estilo moderno y esquinas redondeadas.
+    - RelativeLayout → Organiza la imagen de perfil a la izquierda y la información textual a la derecha.
+    - Campos visibles: Imagen, Nombre, Email, DNI, Dirección y Proveedor.
+
+    Flujo funcional:
+    1. El adaptador del RecyclerView infla este layout para cada cliente registrado.
+    2. Cada campo de texto se completa dinámicamente con los datos obtenidos de Firebase.
+    3. Al pulsar un ítem, se puede abrir un diálogo o actividad con información más detallada del cliente.
+-->
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     app:cardCornerRadius="10dp"
     app:cardUseCompatPadding="true">
 
+    <!-- ===========================
+         CONTENEDOR PRINCIPAL
+         Distribuye imagen e información textual.
+    ============================ -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <!--Imagen de perfil-->
+        <!-- ===========================
+             IMAGEN DE PERFIL
+             Foto del cliente (por defecto: img_perfil).
+        ============================ -->
         <ImageView
             android:id="@+id/imagenC"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
             android:layout_marginTop="2dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/img_perfil"
-            android:layout_width="100dp"
-            android:layout_height="100dp"/>
+            android:src="@drawable/img_perfil"/>
 
-        <!--Botón para llamar-->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnLlamar"
-            android:text="@string/btnLlamar"
-            android:layout_below="@id/imagenC"
-            app:cornerRadius="8dp"
-            android:layout_toStartOf="@id/nombresCPerfil"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-
-        <!--Botón para enviar SMS-->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSms"
-            android:text="@string/btnSms"
-            android:layout_below="@id/btnLlamar"
-            app:cornerRadius="8dp"
-            android:layout_marginEnd="2dp"
-            android:layout_toStartOf="@id/nombresCPerfil"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-
-        <!--Nombres-->
+        <!-- ===========================
+             NOMBRE DEL CLIENTE
+             Muestra el nombre completo del cliente.
+        ============================ -->
         <TextView
             android:id="@+id/nombresCPerfil"
-            android:text="@string/nombresCPerfil"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_toEndOf="@id/imagenC"
             android:layout_marginStart="8dp"
-            android:textColor="@color/azul_marino_oscuro"
             android:layout_marginTop="2dp"
+            android:text="@string/nombresCPerfil"
+            android:textColor="@color/azul_marino_oscuro"
             android:textSize="17sp"
-            android:textStyle="bold"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:textStyle="bold"/>
 
-        <!--Email-->
+        <!-- ===========================
+             CORREO ELECTRÓNICO
+        ============================ -->
         <TextView
             android:id="@+id/emailCPerfil"
-            android:text="@string/emailCPerfil"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toEndOf="@id/imagenC"
             android:layout_below="@id/nombresCPerfil"
             android:layout_marginStart="8dp"
             android:layout_marginTop="5dp"
+            android:text="@string/emailCPerfil"
             android:textSize="16sp"/>
 
-        <!--Dni-->
+        <!-- ===========================
+             DNI DEL CLIENTE
+        ============================ -->
         <TextView
             android:id="@+id/dniCPerfil"
-            android:text="@string/dniCPerfil"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_toEndOf="@id/imagenC"
             android:layout_below="@id/emailCPerfil"
             android:layout_marginStart="8dp"
             android:layout_marginTop="4dp"
-            android:textSize="16sp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:text="@string/dniCPerfil"
+            android:textSize="16sp"/>
 
-        <!--Dirección-->
+        <!-- ===========================
+             DIRECCIÓN DEL CLIENTE
+        ============================ -->
         <TextView
             android:id="@+id/ubicacion"
-            android:text="@string/ubicacion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_toEndOf="@id/imagenC"
             android:layout_below="@id/dniCPerfil"
             android:layout_marginStart="8dp"
             android:layout_marginTop="4dp"
-            android:textSize="16sp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:text="@string/ubicacion"
+            android:textSize="16sp"/>
 
-        <!--Teléfono-->
+        <!-- ===========================
+             PROVEEDOR (autenticación o fuente del registro)
+        ============================ -->
         <TextView
-            android:id="@+id/telefonoCPerfil"
-            android:text="@string/telefonoCPerfil"
+            android:id="@+id/proveedorCPerfil"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_toEndOf="@id/imagenC"
             android:layout_below="@id/ubicacion"
             android:layout_marginStart="8dp"
             android:layout_marginTop="4dp"
-            android:textSize="16sp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-
-        <!--Proveedor-->
-        <TextView
-            android:id="@+id/proveedorCPerfil"
             android:text="@string/proveedorCPerfil"
-            android:layout_toEndOf="@id/imagenC"
-            android:layout_below="@id/telefonoCPerfil"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="4dp"
-            android:textSize="16sp"
             android:textColor="@color/azul_marino_oscuro"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:textSize="16sp"/>
     </RelativeLayout>
 
 </com.google.android.material.card.MaterialCardView>

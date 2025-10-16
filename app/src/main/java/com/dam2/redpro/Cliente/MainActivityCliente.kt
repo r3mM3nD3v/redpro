@@ -20,14 +20,17 @@ import com.dam2.redpro.databinding.ActivityMainClienteBinding
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
 
-class MainActivityCliente : AppCompatActivity() , NavigationView.OnNavigationItemSelectedListener {
+/**
+ * Home del cliente:
+ * - Drawer con navegación a Inicio, Mi Perfil y Cerrar Sesión.
+ */
+class MainActivityCliente : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
-    private lateinit var binding : ActivityMainClienteBinding
-    private var firebaseAuth : FirebaseAuth?=null
+    private lateinit var binding: ActivityMainClienteBinding
+    private val firebaseAuth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
 
     private var dobleClick = false
     private val handler = Handler(Looper.getMainLooper())
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,24 +40,24 @@ class MainActivityCliente : AppCompatActivity() , NavigationView.OnNavigationIte
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
 
-        firebaseAuth = FirebaseAuth.getInstance()
         comprobarSesion()
 
         binding.navigationView.setNavigationItemSelectedListener(this)
 
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true){
+        // Back press: primero intenta cerrar el drawer; si no, usa doble tap para salir
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (dobleClick){
-                    /*Salimos de la app*/
+                if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    binding.drawerLayout.closeDrawer(GravityCompat.START)
+                    return
+                }
+                if (dobleClick) {
                     finish()
                     return
                 }
-
                 dobleClick = true
-                Toast.makeText(this@MainActivityCliente, "Presione nuevamente para salir",
-                    Toast.LENGTH_SHORT).show()
-
-                handler.postDelayed({dobleClick = false}, 2000)
+                Toast.makeText(this@MainActivityCliente, "Presione nuevamente para salir", Toast.LENGTH_SHORT).show()
+                handler.postDelayed({ dobleClick = false }, 2000)
             }
         })
 
@@ -65,24 +68,24 @@ class MainActivityCliente : AppCompatActivity() , NavigationView.OnNavigationIte
             R.string.open_drawer,
             R.string.close_drawer
         )
-
         binding.drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
 
         replaceFragment(FragmentInicioC())
     }
 
-    private fun comprobarSesion(){
-        if (firebaseAuth!!.currentUser==null){
+    /** Si no hay usuario autenticado, regresa a selección de tipo. */
+    private fun comprobarSesion() {
+        if (firebaseAuth.currentUser == null) {
             startActivity(Intent(this@MainActivityCliente, SeleccionarTipoActivity::class.java))
             finishAffinity()
-        }else{
+        } else {
             Toast.makeText(this, "Usuario en línea", Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun cerrarSesion(){
-        firebaseAuth!!.signOut()
+    private fun cerrarSesion() {
+        firebaseAuth.signOut()
         startActivity(Intent(this@MainActivityCliente, SeleccionarTipoActivity::class.java))
         finishAffinity()
         Toast.makeText(this, "Cerraste sesión", Toast.LENGTH_SHORT).show()
@@ -91,23 +94,16 @@ class MainActivityCliente : AppCompatActivity() , NavigationView.OnNavigationIte
     private fun replaceFragment(fragment: Fragment) {
         supportFragmentManager
             .beginTransaction()
-            .replace(R.id.navFragment,fragment)
+            .replace(R.id.navFragment, fragment)
             .commit()
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-         when(item.itemId){
-             R.id.op_inicio_c->{
-                 replaceFragment(FragmentInicioC())
-             }
-             R.id.op_mi_perfil_c->{
-                 replaceFragment(FragmentMiPerfilC())
-             }
-             R.id.op_cerrar_sesion_c->{
-                 cerrarSesion()
-             }
-
-         }
+        when (item.itemId) {
+            R.id.op_inicio_c -> replaceFragment(FragmentInicioC())
+            R.id.op_mi_perfil_c -> replaceFragment(FragmentMiPerfilC())
+            R.id.op_cerrar_sesion_c -> cerrarSesion()
+        }
         binding.drawerLayout.closeDrawer(GravityCompat.START)
         return true
     }

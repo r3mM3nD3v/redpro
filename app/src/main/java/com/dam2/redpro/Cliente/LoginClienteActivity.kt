@@ -18,13 +18,17 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.database.FirebaseDatabase
 
+/**
+ * Login de Cliente:
+ * - Email/Password y Google Sign-In.
+ */
 class LoginClienteActivity : AppCompatActivity() {
 
-    private lateinit var binding : ActivityLoginClienteBinding
+    private lateinit var binding: ActivityLoginClienteBinding
 
     private lateinit var firebaseAuth: FirebaseAuth
-    private lateinit var progressDialog : ProgressDialog
-    private lateinit var mGoogleSignInClient : GoogleSignInClient
+    private lateinit var progressDialog: ProgressDialog
+    private lateinit var mGoogleSignInClient: GoogleSignInClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,40 +37,29 @@ class LoginClienteActivity : AppCompatActivity() {
 
         firebaseAuth = FirebaseAuth.getInstance()
 
-        progressDialog = ProgressDialog(this)
-        progressDialog.setTitle("Espere por favor")
-        progressDialog.setCanceledOnTouchOutside(false)
+        progressDialog = ProgressDialog(this).apply {
+            setTitle("Espere por favor")
+            setCanceledOnTouchOutside(false)
+        }
 
+        // Configuración de Google Sign-In (usar el client_id de resources)
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
             .build()
-
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
 
+        // Login con email/password
+        binding.btnLoginC.setOnClickListener { validarInfo() }
 
-        binding.btnLoginC.setOnClickListener {
-            validarInfo()
-        }
+        // Login con Google
+        binding.btnLoginGoogle.setOnClickListener { googleLogin() }
 
-        /*Iniciar sesión con una cuenta de Google*/
-        binding.btnLoginGoogle.setOnClickListener {
-            googleLogin()
-        }
-
-        binding.btnLoginTel.setOnClickListener {
-            startActivity(Intent(this, LoginTelActivity::class.java))
-        }
-
+        // Registro
         binding.tvRegistrarC.setOnClickListener {
             startActivity(Intent(this@LoginClienteActivity, RegistroClienteActivity::class.java))
         }
-
-        binding.tvRecuperarPass.setOnClickListener {
-            startActivity(Intent(this@LoginClienteActivity, RecuperarPasswordActivity::class.java))
-        }
     }
-
 
     private var email = ""
     private var password = ""
@@ -74,21 +67,21 @@ class LoginClienteActivity : AppCompatActivity() {
         email = binding.etEmail.text.toString().trim()
         password = binding.etPassword.text.toString().trim()
 
-        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()){
-            binding.etEmail.error = "Email inválido"
-            binding.etEmail.requestFocus()
+        when {
+            !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                binding.etEmail.error = "Email inválido"
+                binding.etEmail.requestFocus()
+            }
+            email.isEmpty() -> {
+                binding.etEmail.error = "Ingrese email"
+                binding.etEmail.requestFocus()
+            }
+            password.isEmpty() -> {
+                binding.etPassword.error = "Ingrese password"
+                binding.etPassword.requestFocus()
+            }
+            else -> loginCliente()
         }
-        else if (email.isEmpty()){
-            binding.etEmail.error = "Ingrese email"
-            binding.etEmail.requestFocus()
-        }
-        else if (password.isEmpty()){
-            binding.etPassword.error = "Ingrese password"
-            binding.etPassword.requestFocus()
-        }else{
-            loginCliente()
-        }
-
     }
 
     private fun loginCliente() {
@@ -100,93 +93,105 @@ class LoginClienteActivity : AppCompatActivity() {
                 progressDialog.dismiss()
                 startActivity(Intent(this, MainActivityCliente::class.java))
                 finishAffinity()
-                Toast.makeText(this, "Bienvenido(a)",
-                    Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Bienvenido(a)", Toast.LENGTH_SHORT).show()
             }
-            .addOnFailureListener {e->
-                Toast.makeText(this, "No se pudo iniciar sesión debido a ${e.message}",
-                    Toast.LENGTH_SHORT).show()
+            .addOnFailureListener { e ->
+                progressDialog.dismiss()
+                Toast.makeText(
+                    this,
+                    "No se pudo iniciar sesión: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
-
     }
 
     private fun googleLogin() {
         val googleSignInIntent = mGoogleSignInClient.signInIntent
         googleSignInARL.launch(googleSignInIntent)
-
     }
 
     private val googleSignInARL = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()){ resultado->
-        if (resultado.resultCode == RESULT_OK){
-            //Si el usuario seleccionó una cuenta del cuadro de diálogo
+        ActivityResultContracts.StartActivityForResult()
+    ) { resultado ->
+        if (resultado.resultCode == RESULT_OK) {
             val data = resultado.data
             val task = GoogleSignIn.getSignedInAccountFromIntent(data)
             try {
                 val cuenta = task.getResult(ApiException::class.java)
-                autenticacionGoogle(cuenta.idToken)
-            }catch (e:Exception){
-                Toast.makeText(this,"${e.message}",Toast.LENGTH_SHORT).show()
+                autenticacionGoogle(cuenta?.idToken)
+            } catch (e: Exception) {
+                Toast.makeText(this, e.message ?: "Error al iniciar con Google", Toast.LENGTH_SHORT).show()
             }
-        }else{
-            Toast.makeText(this,"La operación de logeo ha sido cancelada",Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, "La operación de logeo ha sido cancelada", Toast.LENGTH_SHORT).show()
         }
-
     }
 
     private fun autenticacionGoogle(idToken: String?) {
+        if (idToken.isNullOrBlank()) {
+            Toast.makeText(this, "Token de Google inválido", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        progressDialog.setMessage("Autenticando con Google")
+        progressDialog.show()
+
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         firebaseAuth.signInWithCredential(credential)
-            .addOnSuccessListener { resultadoAuth->
-                if (resultadoAuth.additionalUserInfo!!.isNewUser){
-                    //Si el usuario es nuevo, registrar su información
+            .addOnSuccessListener { resultadoAuth ->
+                if (resultadoAuth.additionalUserInfo?.isNewUser == true) {
+                    // Usuario nuevo: guardar datos básicos
                     llenarInfoBD()
-                }else{
-                    //Si el usuario ya se registró con anterioridad
+                } else {
+                    progressDialog.dismiss()
                     startActivity(Intent(this, MainActivityCliente::class.java))
                     finishAffinity()
                 }
             }
-            .addOnFailureListener { e->
-                Toast.makeText(this,"${e.message}",Toast.LENGTH_SHORT).show()
+            .addOnFailureListener { e ->
+                progressDialog.dismiss()
+                Toast.makeText(this, e.message ?: "No se pudo autenticar con Google", Toast.LENGTH_SHORT).show()
             }
     }
 
+    /** Guarda datos minimos del cliente nuevo en RTDB (sin teléfono ni OTP). */
     private fun llenarInfoBD() {
         progressDialog.setMessage("Guardando información")
 
-        val uid = firebaseAuth.uid
-        val nombreC = firebaseAuth.currentUser?.displayName
-        val emailC = firebaseAuth.currentUser?.email
+        val uid = firebaseAuth.uid ?: run {
+            progressDialog.dismiss()
+            Toast.makeText(this, "UID no disponible", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val nombreC = firebaseAuth.currentUser?.displayName.orEmpty()
+        val emailC = firebaseAuth.currentUser?.email.orEmpty()
         val tiempoRegistro = Constantes().obtenerTiempoD()
 
-        val datosCliente = HashMap<String, Any>()
+        val datosCliente = hashMapOf(
+            "uid" to uid,
+            "nombres" to nombreC,
+            "email" to emailC,
+            "telefono" to "",             // sin phone login/OTP
+            "dni" to "",
+            "proveedor" to "google",
+            "tRegistro" to "$tiempoRegistro",
+            "imagen" to "",
+            "tipoUsuario" to "cliente"
+        )
 
-        datosCliente["uid"] = "$uid"
-        datosCliente["nombres"] = "$nombreC"
-        datosCliente["email"] = "$emailC"
-        datosCliente["telefono"] = ""
-        datosCliente["dni"] = ""
-        datosCliente["proveedor"] = "google"
-        datosCliente["tRegistro"] = "$tiempoRegistro"
-        datosCliente["imagen"] = ""
-        datosCliente["tipoUsuario"] = "cliente"
-
-        val ref = FirebaseDatabase.getInstance().getReference("Usuarios")
-        ref.child(uid!!)
+        FirebaseDatabase.getInstance()
+            .getReference("Usuarios")
+            .child(uid)
             .setValue(datosCliente)
             .addOnSuccessListener {
                 progressDialog.dismiss()
                 startActivity(Intent(this, MainActivityCliente::class.java))
                 finishAffinity()
             }
-            .addOnFailureListener {e->
+            .addOnFailureListener { e ->
                 progressDialog.dismiss()
-                Toast.makeText(this,"${e.message}",Toast.LENGTH_SHORT).show()
-
+                Toast.makeText(this, e.message ?: "No se pudo guardar información", Toast.LENGTH_SHORT).show()
             }
-
-
-
     }
 }

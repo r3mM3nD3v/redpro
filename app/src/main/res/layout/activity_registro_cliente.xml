@@ -14,6 +14,7 @@
         android:orientation="vertical"
         android:padding="15dp">
 
+        <!-- Título principal -->
         <TextView
             android:text="@string/txtRegistroC"
             android:layout_gravity="center"
@@ -22,6 +23,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
+        <!-- Imagen decorativa (ícono de registro de cliente) -->
         <androidx.appcompat.widget.AppCompatImageView
             android:src="@drawable/registro_clientes"
             android:layout_gravity="center"
@@ -30,7 +32,7 @@
             android:layout_width="80dp"
             android:layout_height="80dp"/>
 
-        <!--Nombres-->
+        <!-- Campo: Nombres del cliente -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -43,10 +45,9 @@
                 android:inputType="textPersonName|textCapWords"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
-
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!--Email-->
+        <!-- Campo: Email del cliente -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -59,15 +60,13 @@
                 android:inputType="textEmailAddress"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
-
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!--Password-->
+        <!-- Campo: Contraseña -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:passwordToggleEnabled="true">
-
             <EditText
                 android:id="@+id/etPassword"
                 android:hint="@string/etPassword"
@@ -76,15 +75,13 @@
                 android:drawablePadding="5dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
-
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!--Confirmar el password-->
+        <!-- Campo: Confirmar contraseña -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:passwordToggleEnabled="true">
-
             <EditText
                 android:id="@+id/etCPassword"
                 android:hint="@string/etCPassword"
@@ -93,10 +90,9 @@
                 android:drawablePadding="5dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
-
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!--Registrar cliente-->
+        <!-- Botón principal: Registrar cliente -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRegistrarC"
             android:text="@string/btnRegistrarC"
@@ -106,7 +102,5 @@
             android:layout_gravity="center"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
-
     </androidx.appcompat.widget.LinearLayoutCompat>
-
 </ScrollView>

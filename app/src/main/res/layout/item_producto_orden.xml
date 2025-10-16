@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_marginBottom="1dp"
     app:cardElevation="5dp"
     app:contentPadding="5dp"
@@ -25,30 +25,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
-        <!--Precio por unidad-->
-        <TextView
-            android:id="@+id/itemPrecioP"
-            android:text="@string/itemPrecioP"
-            android:layout_below="@+id/itemNombreP"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-
         <!--Cantidad-->
         <TextView
             android:id="@+id/itemCantidadP"
             android:text="@string/itemCantidadP"
-            android:layout_below="@id/itemPrecioP"
+            android:layout_below="@id/itemNombreP"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
-
-        <!--Precio [suma] -->
-        <TextView
-            android:id="@+id/itemPrecioFinalP"
-            android:text="@string/itemPrecioFinalP"
-            android:layout_below="@id/itemCantidadP"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-
     </RelativeLayout>
 
 </com.google.android.material.card.MaterialCardView>

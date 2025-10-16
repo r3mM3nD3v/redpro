@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.dam2.redpro.Cliente.Bottom_Nav_Fragments_Cliente.FragmentCarritoC
-import com.dam2.redpro.Cliente.Bottom_Nav_Fragments_Cliente.FragmentFavoritosC
 import com.dam2.redpro.Cliente.Bottom_Nav_Fragments_Cliente.FragmentMisOrdenesC
 import com.dam2.redpro.Cliente.Bottom_Nav_Fragments_Cliente.FragmentTiendaC
 import com.dam2.redpro.R
@@ -23,9 +22,6 @@ class FragmentInicioC : Fragment() {
             when(it.itemId){
                 R.id.op_tienda_c->{
                     replaceFragment(FragmentTiendaC())
-                }
-                R.id.op_favoritos_c->{
-                    replaceFragment(FragmentFavoritosC())
                 }
                 R.id.op_carrito_c->{
                     replaceFragment(FragmentCarritoC())
@@ -49,6 +45,5 @@ class FragmentInicioC : Fragment() {
             .replace(R.id.bottomFragment,fragment)
             .commit()
     }
-
 
 }
