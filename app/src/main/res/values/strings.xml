@@ -1,0 +1,37 @@
+<resources>
+    <string name="app_name">red_pro</string>
+
+    <!-- Roles -->
+    <string name="rol_cliente">Cliente</string>
+    <string name="rol_profesional">Profesional</string>
+
+    <!-- Auth -->
+    <string name="iniciar_sesion">Iniciar sesión</string>
+    <string name="registrarse">Registrarse</string>
+    <string name="correo">Correo</string>
+    <string name="contrasena">Contraseña</string>
+    <string name="nombre">Nombre</string>
+
+    <!-- Cliente -->
+    <string name="explorar_servicios">Explorar servicios</string>
+    <string name="buscar">Buscar</string>
+    <string name="categoria">Categoría</string>
+    <string name="todas">Todas</string>
+    <string name="ubicacion">Ubicación</string>
+    <string name="precio_max">Precio máx.</string>
+
+    <!-- Profesional -->
+    <string name="mis_servicios">Mis servicios</string>
+    <string name="nuevo_servicio">Nuevo servicio</string>
+    <string name="editar_servicio">Editar servicio</string>
+
+    <!-- Campos Servicio -->
+    <string name="titulo">Título</string>
+    <string name="descripcion">Descripción</string>
+    <string name="precio">Precio</string>
+
+    <!-- Acciones -->
+    <string name="guardar">Guardar</string>
+    <string name="eliminar">Eliminar</string>
+    <string name="cerrar_sesion">Cerrar sesión</string>
+</resources>

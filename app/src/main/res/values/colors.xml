@@ -1,0 +1,9 @@
+<resources>
+    <color name="black">#111111</color>
+    <color name="white">#FFFFFF</color>
+    <color name="primary">#5B7FFF</color>
+    <color name="onPrimary">#FFFFFF</color>
+    <color name="bg">#FAFBFF</color>
+    <color name="card">#FFFFFF</color>
+    <color name="textSecondary">#6B7280</color>
+</resources>
