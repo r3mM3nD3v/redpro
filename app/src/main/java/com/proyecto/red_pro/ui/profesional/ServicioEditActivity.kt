@@ -15,6 +15,7 @@ import com.proyecto.red_pro.databinding.ActivityServicioEditBinding
 import com.proyecto.red_pro.ui.widgets.FotosAdapter
 import com.proyecto.red_pro.util.LocalImages
 import java.io.File
+import android.view.View
 
 class ServicioEditActivity : AppCompatActivity() {
 
@@ -63,11 +64,18 @@ class ServicioEditActivity : AppCompatActivity() {
         setContentView(b.root)
 
         // Spinner
-        b.spCategoria.adapter = ArrayAdapter(this,
-            android.R.layout.simple_spinner_dropdown_item, categorias)
+        b.spCategoria.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_dropdown_item,
+            categorias
+        )
 
         // Recycler horizontal para fotos
-        b.rvFotos.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        b.rvFotos.layoutManager = LinearLayoutManager(
+            this,
+            LinearLayoutManager.HORIZONTAL,
+            false
+        )
         fotosAdapter = FotosAdapter(fotoPaths) { _, removedPath ->
             // Opcional: borrar archivo local cuando el usuario lo quita de la lista
             runCatching { File(removedPath).delete() }
@@ -76,19 +84,35 @@ class ServicioEditActivity : AppCompatActivity() {
 
         // Si venimos a editar, cargamos datos + fotos
         currentId = intent.getStringExtra("id")
+
+        // Si no hay id (servicio nuevo), ocultamos el botón Eliminar
+        if (currentId == null) {
+            b.btnEliminar.visibility = View.GONE
+        } else {
+            b.btnEliminar.visibility = View.VISIBLE
+        }
+
         b.etTitulo.setText(intent.getStringExtra("titulo") ?: "")
         b.etDescripcion.setText(intent.getStringExtra("descripcion") ?: "")
         b.etUbicacion.setText(intent.getStringExtra("ubicacion") ?: "")
         val precio = intent.getDoubleExtra("precio", 0.0)
         if (precio != 0.0) b.etPrecio.setText(precio.toString())
         val cat = intent.getStringExtra("categoria")
-        cat?.let { b.spCategoria.setSelection(categorias.indexOf(it).coerceAtLeast(0)) }
+        cat?.let {
+            b.spCategoria.setSelection(
+                categorias.indexOf(it).coerceAtLeast(0)
+            )
+        }
 
         // Si hay id, intenta cargar photoPaths desde Firestore
         currentId?.let { sid ->
-            FirebaseFirestore.getInstance().collection("services").document(sid).get()
+            FirebaseFirestore.getInstance()
+                .collection("services")
+                .document(sid)
+                .get()
                 .addOnSuccessListener { snap ->
-                    val paths = (snap.get("photoPaths") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+                    val paths = (snap.get("photoPaths") as? List<*>)?.filterIsInstance<String>()
+                        ?: emptyList()
                     if (paths.isNotEmpty()) {
                         fotoPaths.addAll(paths)
                         fotosAdapter.notifyItemRangeInserted(0, paths.size)

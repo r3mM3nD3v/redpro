@@ -16,17 +16,25 @@
             versionCode = 1
             versionName = "1.0"
             testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
             // === Inyección de claves desde secrets.properties / secrets.defaults.properties ===
             val mapsKey = providers.gradleProperty("MAPS_API_KEY").orNull ?: ""
             val firebaseWeb = providers.gradleProperty("FIREBASE_WEB_API_KEY").orNull ?: ""
+
+            // Para usar en código Kotlin (BuildConfig.MAPS_API_KEY...)
             buildConfigField("String", "MAPS_API_KEY", "\"$mapsKey\"")
             buildConfigField("String", "FIREBASE_WEB_API_KEY", "\"$firebaseWeb\"")
+
+            //Para que el placeholder ${MAPS_API_KEY} del AndroidManifest tenga valor
+            manifestPlaceholders["MAPS_API_KEY"] = mapsKey
         }
 
-        buildFeatures { viewBinding = true }
+        buildFeatures {
+            viewBinding = true
+            buildConfig = true
+        }
 
         compileOptions {
-            // Puedes dejar 11 si tu código lo requiere; con AGP 8.7 se recomienda JDK 17 en el IDE
             sourceCompatibility = JavaVersion.VERSION_11
             targetCompatibility = JavaVersion.VERSION_11
         }

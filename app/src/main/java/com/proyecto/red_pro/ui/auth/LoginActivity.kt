@@ -12,7 +12,6 @@ import com.proyecto.red_pro.ui.cliente.ClienteHomeActivity
 import com.proyecto.red_pro.ui.profesional.ProfesionalHomeActivity
 import com.proyecto.red_pro.util.Prefs
 
-
 class LoginActivity : AppCompatActivity() {
     private lateinit var b: ActivityLoginBinding
 
@@ -27,7 +26,10 @@ class LoginActivity : AppCompatActivity() {
         val currentUser = Firebase.auth.currentUser
         if (currentUser != null && prefs.remember) {
             val rol = prefs.rol
-            if (rol.isNotEmpty()) { goByRole(rol); return }
+            if (rol.isNotEmpty()) {
+                goByRole(rol)
+                return
+            }
         }
 
         b.btnGoRegister.setOnClickListener {
@@ -44,16 +46,50 @@ class LoginActivity : AppCompatActivity() {
 
             Firebase.auth.signInWithEmailAndPassword(email, pass)
                 .addOnSuccessListener { res ->
-                    val uid = res.user!!.uid
-                    Firebase.firestore.collection("users").document(uid).get()
+                    val firebaseUser = res.user!!
+                    val uid = firebaseUser.uid
+                    val emailFromAuth = firebaseUser.email ?: email
+
+                    val usersRef = Firebase.firestore.collection("users").document(uid)
+
+                    usersRef.get()
                         .addOnSuccessListener { doc ->
+
+                            // Si NO existe el perfil en Firestore, lo creamos automáticamente
+                            if (!doc.exists()) {
+                                val newUser = hashMapOf(
+                                    "id" to uid,
+                                    "nombre" to "",
+                                    "email" to emailFromAuth,
+                                    "rol" to "cliente"
+                                )
+
+                                usersRef.set(newUser)
+                                    .addOnSuccessListener {
+                                        prefs.remember = b.cbRemember?.isChecked == true
+                                        prefs.rol = "cliente"
+                                        goByRole("cliente")
+                                    }
+                                    .addOnFailureListener { e ->
+                                        Toast.makeText(
+                                            this,
+                                            e.message ?: "No se pudo crear tu perfil",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                        // Por seguridad, cerramos sesión si ni siquiera podemos crear el doc
+                                        Firebase.auth.signOut()
+                                    }
+                                return@addOnSuccessListener
+                            }
+
+                            // 🔹 Si el documento SÍ existe, seguimos como antes
                             val rol = doc.getString("rol") ?: "cliente"
                             prefs.remember = b.cbRemember?.isChecked == true
                             prefs.rol = rol
                             goByRole(rol)
                         }
                         .addOnFailureListener {
-                            Toast.makeText(this, "No se pudo leer el rol", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, "No se pudo leer el perfil", Toast.LENGTH_SHORT).show()
                         }
                 }
                 .addOnFailureListener { e ->

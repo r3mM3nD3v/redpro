@@ -4,6 +4,7 @@ import android.app.AlertDialog
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -14,6 +15,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.proyecto.red_pro.databinding.ActivityProfileBinding
 import com.proyecto.red_pro.util.LocalImages
+import com.proyecto.red_pro.util.Prefs
 import java.io.File
 
 class ProfileActivity : AppCompatActivity() {
@@ -49,11 +51,17 @@ class ProfileActivity : AppCompatActivity() {
         binding = ActivityProfileBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // 🔹 Ocultar "Acerca de mí" si el rol es cliente
+        val prefs = Prefs(this)
+        if (prefs.rol == "cliente") {
+            binding.etAbout.visibility = View.GONE
+        }
+
         loadProfile()
 
         binding.btnPickImage.setOnClickListener { showImagePickerSheet() }
         binding.btnSave.setOnClickListener { saveProfile() }
-        binding.btnDeleteAccount.setOnClickListener { deleteAccountFlow() }
+        // ✅ YA NO hay opción de eliminar cuenta
     }
 
     private fun loadProfile() {
@@ -132,39 +140,6 @@ class ProfileActivity : AppCompatActivity() {
             }
             .addOnFailureListener {
                 Toast.makeText(this, "No se pudo guardar", Toast.LENGTH_SHORT).show()
-            }
-    }
-
-    private fun deleteAccountFlow() {
-        AlertDialog.Builder(this)
-            .setTitle("Eliminar cuenta")
-            .setMessage("¿Seguro que deseas eliminar tu cuenta? Esta acción es irreversible.")
-            .setPositiveButton("Eliminar") { _, _ -> deleteAccount() }
-            .setNegativeButton("Cancelar", null)
-            .show()
-    }
-
-    private fun deleteAccount() {
-        val user = auth.currentUser ?: return
-        val uid = user.uid
-
-        db.collection("users").document(uid).delete()
-            .addOnSuccessListener {
-                // Borra archivo local del perfil (best effort)
-                runCatching {
-                    File(filesDir, "images/users/$uid/profile.jpg").delete()
-                }
-                user.delete()
-                    .addOnSuccessListener {
-                        Toast.makeText(this, "Cuenta eliminada", Toast.LENGTH_SHORT).show()
-                        finish()
-                    }
-                    .addOnFailureListener { e ->
-                        Toast.makeText(this, "Reinicia sesión para eliminar: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
-                    }
-            }
-            .addOnFailureListener {
-                Toast.makeText(this, "No se pudo eliminar el perfil", Toast.LENGTH_SHORT).show()
             }
     }
 }

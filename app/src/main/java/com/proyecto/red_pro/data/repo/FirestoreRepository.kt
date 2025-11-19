@@ -62,17 +62,18 @@ class FirestoreRepository(private val db: FirebaseFirestore) {
     fun getServicio(id: String): Task<DocumentSnapshot> = services.document(id).get()
 
     /**
-     * Escucha SOLO mis servicios, ordenados por timestamp desc.
-     * Ojo: whereEqualTo + orderBy puede requerir índice compuesto (Firestore te lo sugiere).
+     * Escucha SOLO mis servicios.
+     * Se filtra por uidProfesional y se ordena en memoria por timestamp desc
+     * para evitar necesitar un índice compuesto en Firestore.
      */
     fun listenMisServicios(uid: String) = callbackFlow<List<Servicio>> {
         val q = services
             .whereEqualTo("uidProfesional", uid)
-            .orderBy("timestamp", Query.Direction.DESCENDING)
 
         val reg = q.addSnapshotListener(MetadataChanges.INCLUDE) { snap, _ ->
             val list = snap?.toObjects(Servicio::class.java) ?: emptyList()
-            trySend(list)
+            // Ordenamos en memoria de más reciente a más antiguo
+            trySend(list.sortedByDescending { it.timestamp })
         }
         awaitClose { reg.remove() }
     }
