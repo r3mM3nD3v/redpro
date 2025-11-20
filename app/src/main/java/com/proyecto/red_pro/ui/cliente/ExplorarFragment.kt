@@ -1,5 +1,8 @@
 package com.proyecto.red_pro.ui.cliente
 
+import android.app.AlertDialog
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -13,10 +16,12 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.FirebaseFirestore
 import com.proyecto.red_pro.R
 import com.proyecto.red_pro.data.model.Servicio
 import com.proyecto.red_pro.data.repo.FirestoreRepository
 import com.proyecto.red_pro.databinding.FragmentExplorarBinding
+import com.proyecto.red_pro.databinding.ActivityServicioDetalleBinding
 import com.proyecto.red_pro.ui.widgets.ServiciosAdapter
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -82,18 +87,99 @@ class ExplorarFragment : Fragment() {
                     (max == null || s.precio <= max)
         }
         b.empty.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE
-        adapter.submitList(filtered.toList()) // ✅ nueva instancia de lista
+        adapter.submitList(filtered.toList()) // nueva instancia de lista
     }
 
+    /**
+     * Muestra un popup con layout personalizado:
+     * - Datos del servicio
+     * - Datos del profesional
+     * - Botón "Llamar" que abre el marcador
+     */
     private fun showServicioDetalle(s: Servicio) {
-        val msg = "Categoría: ${s.categoria}\n" +
-                "Precio: USD ${"%.2f".format(s.precio)}\n" +
-                "Ubicación: ${s.ubicacion}\n\n${s.descripcion}"
-        androidx.appcompat.app.AlertDialog.Builder(requireContext())
-            .setTitle(s.titulo)
-            .setMessage(msg)
-            .setPositiveButton("Cerrar", null)
-            .show()
+        // 1) Inflar el layout personalizado del popup
+        val dialogBinding = ActivityServicioDetalleBinding.inflate(layoutInflater)
+
+        //Pintar datos del servicio
+        dialogBinding.tvTituloServicio.text = s.titulo
+        dialogBinding.tvCategoriaServicio.text = s.categoria
+        dialogBinding.tvPrecioServicio.text = "USD " + String.format("%.2f", s.precio)
+        dialogBinding.tvUbicacionServicio.text =
+            if (s.ubicacion.isNotEmpty()) s.ubicacion else "Sin ubicación"
+        dialogBinding.tvDescripcionServicio.text =
+            if (s.descripcion.isNotEmpty()) s.descripcion else "Sin descripción"
+
+        //Datos del profesional desde Firestore
+        var telefonoProfesional: String? = null
+
+        if (s.uidProfesional.isNotEmpty()) {
+            FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(s.uidProfesional)
+                .get()
+                .addOnSuccessListener { doc ->
+                    dialogBinding.tvNombreProfesional.text =
+                        doc.getString("nombre") ?: "Profesional"
+                    val tel = doc.getString("telefono") ?: ""
+                    dialogBinding.tvTelefonoProfesional.text =
+                        if (tel.isNotEmpty()) tel else "Sin teléfono"
+                    dialogBinding.tvEmailProfesional.text =
+                        doc.getString("email") ?: ""
+                    telefonoProfesional = tel
+                }
+                .addOnFailureListener {
+                    dialogBinding.tvNombreProfesional.text = "Profesional"
+                    dialogBinding.tvTelefonoProfesional.text = "Sin teléfono"
+                    dialogBinding.tvEmailProfesional.text = ""
+                }
+        } else {
+            dialogBinding.tvNombreProfesional.text = "Profesional"
+            dialogBinding.tvTelefonoProfesional.text = "Sin teléfono"
+            dialogBinding.tvEmailProfesional.text = ""
+        }
+
+        // Construir el AlertDialog con ese layout
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogBinding.root)
+            .setCancelable(true)
+            .create()
+
+        // Llamar usando el teléfono del profesional
+        dialogBinding.btnWhatsApp.text = "Llamar"
+        dialogBinding.btnWhatsApp.setOnClickListener {
+            val telRaw = telefonoProfesional?.trim() ?: ""
+            if (telRaw.isEmpty()) {
+                android.widget.Toast.makeText(
+                    requireContext(),
+                    "Este profesional no tiene teléfono configurado.",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
+            val tel = telRaw.filter { it.isDigit() || it == '+' }
+            if (tel.isEmpty()) {
+                android.widget.Toast.makeText(
+                    requireContext(),
+                    "Número de teléfono inválido.",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
+            val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$tel"))
+            try {
+                startActivity(intent)
+            } catch (e: Exception) {
+                android.widget.Toast.makeText(
+                    requireContext(),
+                    "No se pudo abrir la app de teléfono.",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
+        dialog.show()
     }
 
     override fun onDestroyView() { _b = null; super.onDestroyView() }

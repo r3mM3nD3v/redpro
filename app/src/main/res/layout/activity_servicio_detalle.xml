@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Bloque datos del servicio -->
+        <TextView
+            android:id="@+id/tvTituloServicio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Título del servicio"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tvCategoriaServicio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Categoría" />
+
+        <TextView
+            android:id="@+id/tvPrecioServicio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="USD 0.00" />
+
+        <TextView
+            android:id="@+id/tvUbicacionServicio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Ubicación"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tvDescripcionServicio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Descripción del servicio"
+            android:layout_marginBottom="16dp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#DDDDDD"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Bloque datos del profesional -->
+        <TextView
+            android:id="@+id/tvNombreProfesional"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Nombre del profesional"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/tvTelefonoProfesional"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Teléfono" />
+
+        <TextView
+            android:id="@+id/tvEmailProfesional"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Email"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Botón de acción: llamar -->
+        <Button
+            android:id="@+id/btnWhatsApp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Llamar" />
+
+    </LinearLayout>
+</ScrollView>
