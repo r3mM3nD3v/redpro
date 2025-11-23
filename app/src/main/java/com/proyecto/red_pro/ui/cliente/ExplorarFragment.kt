@@ -17,7 +17,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.FirebaseFirestore
-import com.proyecto.red_pro.R
 import com.proyecto.red_pro.data.model.Servicio
 import com.proyecto.red_pro.data.repo.FirestoreRepository
 import com.proyecto.red_pro.databinding.FragmentExplorarBinding
@@ -87,20 +86,19 @@ class ExplorarFragment : Fragment() {
                     (max == null || s.precio <= max)
         }
         b.empty.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE
-        adapter.submitList(filtered.toList()) // nueva instancia de lista
+        adapter.submitList(filtered.toList())
     }
 
     /**
-     * Muestra un popup con layout personalizado:
+     * Popup con:
      * - Datos del servicio
      * - Datos del profesional
-     * - Botón "Llamar" que abre el marcador
+     * - Botón "Llamar"
      */
     private fun showServicioDetalle(s: Servicio) {
-        // 1) Inflar el layout personalizado del popup
         val dialogBinding = ActivityServicioDetalleBinding.inflate(layoutInflater)
 
-        //Pintar datos del servicio
+        // Datos del servicio
         dialogBinding.tvTituloServicio.text = s.titulo
         dialogBinding.tvCategoriaServicio.text = s.categoria
         dialogBinding.tvPrecioServicio.text = "USD " + String.format("%.2f", s.precio)
@@ -109,7 +107,7 @@ class ExplorarFragment : Fragment() {
         dialogBinding.tvDescripcionServicio.text =
             if (s.descripcion.isNotEmpty()) s.descripcion else "Sin descripción"
 
-        //Datos del profesional desde Firestore
+        // Datos del profesional
         var telefonoProfesional: String? = null
 
         if (s.uidProfesional.isNotEmpty()) {
@@ -138,13 +136,12 @@ class ExplorarFragment : Fragment() {
             dialogBinding.tvEmailProfesional.text = ""
         }
 
-        // Construir el AlertDialog con ese layout
         val dialog = AlertDialog.Builder(requireContext())
             .setView(dialogBinding.root)
             .setCancelable(true)
             .create()
 
-        // Llamar usando el teléfono del profesional
+        // Botón llamar
         dialogBinding.btnWhatsApp.text = "Llamar"
         dialogBinding.btnWhatsApp.setOnClickListener {
             val telRaw = telefonoProfesional?.trim() ?: ""
