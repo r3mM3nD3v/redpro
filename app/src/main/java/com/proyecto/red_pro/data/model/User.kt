@@ -6,5 +6,5 @@ data class User(
     val email: String = "",
     val rol: String = "",       // "cliente" | "profesional"
     val telefono: String = "",
-    val photoPath: String? = null   // ruta local (interno de la app)
+    val photoPath: String? = ""   // ruta local (interno de la app)
 )
