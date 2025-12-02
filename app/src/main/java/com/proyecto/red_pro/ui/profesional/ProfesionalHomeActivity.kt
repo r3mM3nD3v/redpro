@@ -20,7 +20,11 @@ class ProfesionalHomeActivity : AppCompatActivity() {
         b = ActivityProfesionalHomeBinding.inflate(layoutInflater)
         setContentView(b.root)
 
-        setSupportActionBar(b.toolbar)
+        // Aquí sí se setea la toolbar principal
+        setSupportActionBar(b.toolbar.toolbar)
+        // Aquí sí se elimina el name de la app
+        supportActionBar?.setDisplayShowTitleEnabled(false)
+
 
         supportFragmentManager.beginTransaction()
             .replace(R.id.container, MisServiciosFragment())

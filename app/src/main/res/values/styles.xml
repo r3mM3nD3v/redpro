@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Tema principal de tu app (si ya tienes uno, este lo complementa) -->
+    <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Ajustes generales -->
+    </style>
+
+    <!-- Estilo para redondear el FloatingActionButton -->
+    <style name="FabRounded">
+        <item name="cornerSize">50%</item>
+    </style>
+
+</resources>

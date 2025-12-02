@@ -21,6 +21,8 @@ class ClienteHomeActivity : AppCompatActivity() {
         setContentView(b.root)
 
         setSupportActionBar(b.toolbar)
+        //Elimina el nombre de la app
+        supportActionBar?.setDisplayShowTitleEnabled(false)
 
         supportFragmentManager.beginTransaction()
             .replace(R.id.container, ExplorarFragment())

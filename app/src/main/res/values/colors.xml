@@ -2,8 +2,13 @@
     <color name="black">#111111</color>
     <color name="white">#FFFFFF</color>
     <color name="primary">#5B7FFF</color>
+    <color name="secundary">#6cbce1</color>
+
     <color name="onPrimary">#FFFFFF</color>
     <color name="bg">#FAFBFF</color>
     <color name="card">#FFFFFF</color>
+
+    <!-- Textos -->
+    <color name="textPrimary">#111827</color>
     <color name="textSecondary">#6B7280</color>
 </resources>

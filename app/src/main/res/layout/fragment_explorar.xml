@@ -1,67 +1,135 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:padding="12dp"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root_cliente"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/bg">
 
-    <EditText
-        android:id="@+id/etBuscar"
-        android:hint="@string/buscar"
-        android:drawableStart="@android:drawable/ic_menu_search"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
+    <!-- Contenido principal debajo del Toolbar -->
     <LinearLayout
-        android:orientation="horizontal"
-        android:layout_marginTop="8dp"
+        android:id="@+id/contentLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <Spinner
-            android:id="@+id/spCategoria"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"/>
-
-        <EditText
-            android:id="@+id/etUbicacion"
-            android:hint="@string/ubicacion"
-            android:layout_marginStart="8dp"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"/>
-
-        <EditText
-            android:id="@+id/etPrecioMax"
-            android:hint="@string/precio_max"
-            android:inputType="numberDecimal"
-            android:layout_marginStart="8dp"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"/>
-    </LinearLayout>
-
-    <ProgressBar
-        android:id="@+id/progress"
-        android:layout_gravity="center"
-        android:visibility="gone"
-        android:layout_width="48dp"
-        android:layout_height="48dp"/>
-
-    <TextView
-        android:id="@+id/empty"
-        android:text="No se encontraron servicios"
-        android:textColor="#6B7280"
-        android:gravity="center"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
         android:padding="16dp"
-        android:visibility="gone"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:clipToPadding="false"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvServicios"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"/>
-</LinearLayout>
+        <!-- Búsqueda -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:boxBackgroundMode="outline"
+            app:boxStrokeColor="@color/primary"
+            app:hintTextColor="@color/primary"
+            app:endIconTint="@color/primary">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etBuscar"
+                android:hint="@string/buscar"
+                android:drawableStart="@android:drawable/ic_menu_search"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Filtros card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:padding="12dp"
+            app:cardElevation="2dp"
+            app:cardCornerRadius="12dp"
+            app:strokeColor="@color/primary"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <!-- FILA 1 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="2">
+
+                    <Spinner
+                        android:id="@+id/spCategoria"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"/>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="1"
+                        app:boxBackgroundMode="filled"
+                        app:boxBackgroundColor="@color/primary"
+                        app:boxStrokeColor="@color/primary"
+                        app:hintTextColor="@color/primary">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etUbicacion"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/ubicacion"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <!-- FILA 2 -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_marginTop="8dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:boxBackgroundMode="filled"
+                    app:boxBackgroundColor="@color/primary"
+                    app:boxStrokeColor="#0c243d"
+                    app:hintTextColor="@color/primary">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etPrecioMax"
+                        android:hint="@string/precio_max"
+                        android:inputType="numberDecimal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ProgressBar -->
+        <ProgressBar
+            android:id="@+id/progress"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            android:layout_marginTop="12dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"/>
+
+        <!-- Empty state -->
+        <TextView
+            android:id="@+id/empty"
+            android:text="No se encontraron servicios"
+            android:textColor="@color/textSecondary"
+            android:gravity="center"
+            android:padding="16dp"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <!-- Lista -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvServicios"
+            android:layout_marginTop="8dp"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:background="@color/card"/>
+    </LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
