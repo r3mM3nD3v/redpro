@@ -41,6 +41,9 @@
         <activity android:name=".ui.profesional.ProfesionalHomeActivity" />
         <activity android:name=".ui.cliente.ClienteHomeActivity" />
         <activity android:name=".ui.auth.RegisterActivity" />
+        <!--Para la ventana de AboutActivity-->
+        <activity android:name=".ui.profile.AboutActivity" />
+
         <activity
             android:name=".ui.auth.LoginActivity"
             android:exported="true">

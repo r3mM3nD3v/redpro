@@ -24,6 +24,8 @@
     <string name="mis_servicios">Mis servicios</string>
     <string name="nuevo_servicio">Nuevo servicio</string>
     <string name="editar_servicio">Editar servicio</string>
+    <string name="app_logo_desc">Logo de la aplicación</string>
+
 
     <!-- Campos Servicio -->
     <string name="titulo">Título</string>
@@ -34,4 +36,9 @@
     <string name="guardar">Guardar</string>
     <string name="eliminar">Eliminar</string>
     <string name="cerrar_sesion">Cerrar sesión</string>
+
+    <!-- Menú Hamburguesa... -->
+    <string name="open">Abrir menú</string>
+    <string name="close">Cerrar menú</string>
+
 </resources>

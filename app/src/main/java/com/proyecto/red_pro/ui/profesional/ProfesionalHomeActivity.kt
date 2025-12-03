@@ -22,6 +22,7 @@ class ProfesionalHomeActivity : AppCompatActivity() {
 
         // Aquí sí se setea la toolbar principal
         setSupportActionBar(b.toolbar.toolbar)
+
         // Aquí sí se elimina el name de la app
         supportActionBar?.setDisplayShowTitleEnabled(false)
 

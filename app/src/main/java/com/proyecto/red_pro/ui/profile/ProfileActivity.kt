@@ -17,6 +17,8 @@ import com.proyecto.red_pro.databinding.ActivityProfileBinding
 import com.proyecto.red_pro.util.LocalImages
 import com.proyecto.red_pro.util.Prefs
 import java.io.File
+import com.proyecto.red_pro.R
+
 
 class ProfileActivity : AppCompatActivity() {
 
@@ -50,6 +52,18 @@ class ProfileActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityProfileBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+    // --- ACTIVAR FLECHA DE REGRESO ---
+        val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = ""
+        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_back_white)
+    // ----------------------------------
+
+
+
 
         // 🔹 Ocultar "Acerca de mí" si el rol es cliente
         val prefs = Prefs(this)
@@ -142,4 +156,12 @@ class ProfileActivity : AppCompatActivity() {
                 Toast.makeText(this, "No se pudo guardar", Toast.LENGTH_SHORT).show()
             }
     }
+
+    // -regresa a la actividad anterior-----------
+    override fun onSupportNavigateUp(): Boolean {
+        finish()
+        return true
+    }
+
+
 }

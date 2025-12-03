@@ -9,9 +9,9 @@
     <!-- Toolbar común -->
     <include
         layout="@layout/toolbar_logo"
-        android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize" />
+
 
     <!-- Contenido principal debajo del toolbar -->
     <ScrollView
