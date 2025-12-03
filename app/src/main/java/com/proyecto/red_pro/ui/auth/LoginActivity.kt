@@ -12,7 +12,10 @@ import com.proyecto.red_pro.ui.cliente.ClienteHomeActivity
 import com.proyecto.red_pro.ui.profesional.ProfesionalHomeActivity
 import com.proyecto.red_pro.util.Prefs
 import android.text.InputType
+import android.widget.Switch
 import com.proyecto.red_pro.R
+import androidx.appcompat.app.AppCompatDelegate
+
 
 
 class LoginActivity : AppCompatActivity() {
@@ -101,23 +104,37 @@ class LoginActivity : AppCompatActivity() {
         }
 
         //--Implementación del ojito en la contraseña
-        var mostrar = false
 
-        b.ivTogglePass.setOnClickListener {
-            mostrar = !mostrar
+        //Se deja sin código
+        //-------
 
-            if (mostrar) {
-                b.etPass.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-                b.ivTogglePass.setImageResource(R.drawable.ic_eye)
-            } else {
-                b.etPass.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-                b.ivTogglePass.setImageResource(R.drawable.ic_eye_off)
-            }
+        //----Activar / desactivar según el switch--- Oscuro / claro
+        val switch = findViewById<Switch>(R.id.switchDarkMode)
 
-            b.etPass.setSelection(b.etPass.text.length)
+        // Usar SharedPreferences correctamente
+        val settings = getSharedPreferences("app_settings", MODE_PRIVATE)
+
+        // Cargar estado guardado
+        val isDark = settings.getBoolean("dark_mode", false)
+        switch.isChecked = isDark
+
+        // Aplicar el modo guardado
+        AppCompatDelegate.setDefaultNightMode(
+            if (isDark) AppCompatDelegate.MODE_NIGHT_YES
+            else AppCompatDelegate.MODE_NIGHT_NO
+        )
+
+        // Cuando el usuario toque el switch
+        switch.setOnCheckedChangeListener { _, checked ->
+            settings.edit().putBoolean("dark_mode", checked).apply()
+
+            AppCompatDelegate.setDefaultNightMode(
+                if (checked) AppCompatDelegate.MODE_NIGHT_YES
+                else AppCompatDelegate.MODE_NIGHT_NO
+            )
         }
 
-        //-------
+        //-------- Fin Modo oscuro
 
 
 
@@ -131,4 +148,5 @@ class LoginActivity : AppCompatActivity() {
         startActivity(intent)
         finish()
     }
+
 }

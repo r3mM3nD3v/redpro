@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:fillViewport="true"
-    android:background="#F5F6FA"
+    android:background="@color/bg"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -12,115 +13,106 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <!-- LOGO -->
         <ImageView
             android:id="@+id/appLogo"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
+            android:layout_width="140dp"
+            android:layout_height="134dp"
             android:layout_marginBottom="20dp"
-            android:layout_gravity="center_horizontal"
-            android:src="@drawable/prueba_app"
-            android:scaleType="fitCenter" />
+            android:scaleType="fitCenter"
+            android:src="@drawable/prueba_app" />
 
-        <!-- TARJETA -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="12dp"
             android:background="@color/card"
-            android:clipToOutline="true"
             android:elevation="10dp"
             android:gravity="center"
             android:orientation="vertical"
             android:padding="24dp">
 
-            <!-- TITULO -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:text="Iniciar Sesión"
-                android:textColor="#333333"
+                android:textColor="@color/textPrimary"
                 android:textSize="24sp"
                 android:textStyle="bold"/>
 
-            <!-- CAMPO EMAIL -->
-            <EditText
-                android:id="@+id/etEmail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@android:drawable/edit_text"
-                android:hint="@string/correo"
-                android:inputType="textEmailAddress"
-                android:padding="12dp"/>
-
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="12dp"/>
-
-            <!-- CAMPO CONTRASEÑA + OJITO -->
-            <RelativeLayout
+            <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <EditText
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etEmail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/correo"
+                    android:inputType="textEmailAddress"
+                    android:textColor="@color/textPrimary"
+                    android:padding="12dp"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+
+            <Space android:layout_width="0dp" android:layout_height="12dp"/>
+
+            <!-- Contraseña con ojito manual -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:endIconMode="password_toggle">
+
+                <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPass"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@android:drawable/edit_text"
                     android:hint="@string/contrasena"
-                    android:inputType="textPassword"
                     android:padding="12dp"
-                    android:paddingEnd="48dp"/>
+                    android:inputType="textPassword" />
 
-                <!-- ICONO OJO -->
-                <ImageView
-                    android:id="@+id/ivTogglePass"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:padding="5dp"
-                    android:src="@drawable/ic_eye_off"/>
-            </RelativeLayout>
+            </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- RECORDAR -->
+
+
+
             <CheckBox
                 android:id="@+id/cbRemember"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:text="Recuérdame"
-                android:textColor="#555555"/>
+                android:textColor="@color/textPrimary"/>
 
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="16dp"/>
+            <Space android:layout_width="0dp" android:layout_height="16dp"/>
 
-            <!-- BOTÓN LOGIN -->
             <Button
                 android:id="@+id/btnLogin"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:backgroundTint="#4A90E2"
+                android:backgroundTint="@color/primary"
                 android:padding="12dp"
                 android:text="@string/iniciar_sesion"
-                android:textColor="@android:color/white"/>
+                android:textColor="@color/onPrimary"/>
 
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="8dp"/>
+            <Space android:layout_width="0dp" android:layout_height="8dp"/>
 
-            <!-- BOTÓN REGISTRO -->
             <Button
                 android:id="@+id/btnGoRegister"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:backgroundTint="#7B8D93"
+                android:backgroundTint="@color/secundary"
+                android:textColor="@color/onPrimary"
                 android:padding="12dp"
-                android:text="@string/registrarse"
-                android:textColor="@android:color/white"/>
+                android:text="@string/registrarse"/>
 
+            <Switch
+                android:id="@+id/switchDarkMode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Modo oscuro"
+                android:layout_marginTop="16dp"
+                android:textColor="@color/textPrimary"/>
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

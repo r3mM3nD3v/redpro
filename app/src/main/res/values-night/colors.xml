@@ -1,0 +1,15 @@
+<resources>
+    <color name="black">#FFFFFF</color> <!-- invertido si lo usas como texto -->
+    <color name="white">#000000</color>
+
+    <color name="primary">#5B7FFF</color>     <!-- el mismo tono normalmente -->
+    <color name="secundary">#6cbce1</color>
+    <color name="teal_700">#018786</color>
+
+    <color name="onPrimary">#FFFFFF</color>
+    <color name="bg">#111217</color>          <!-- fondo oscuro -->
+    <color name="card">#1A1B1F</color>        <!-- tarjetas oscuras -->
+
+    <color name="textPrimary">#E5E7EB</color>     <!-- gris claro -->
+    <color name="textSecondary">#A1A1AA</color>   <!-- gris suave -->
+</resources>
