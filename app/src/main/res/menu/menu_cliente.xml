@@ -14,12 +14,16 @@
             android:icon="@drawable/ic_info" />
 
         <item
+            android:id="@+id/action_dark_mode"
+            android:title="Modo oscuro"
+            android:checkable="true"
+            android:checked="false"
+            android:icon="@drawable/ic_dark_mode" />
+
+        <item
             android:id="@+id/action_logout"
             android:title="Cerrar sesión"
             android:icon="@drawable/ic_logout" />
-
-
-
 
     </group>
 
