@@ -43,14 +43,15 @@
                 android:adjustViewBounds="true" />
 
             <!-- BOTÓN CAMBIAR FOTO -->
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnPickImage"
-                android:text="Cambiar foto"
-                android:backgroundTint="@color/primary"
-                android:textColor="@color/onPrimary"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp" />
+                android:text="Cambiar foto"
+                android:textColor="@color/onPrimary"
+                android:layout_marginBottom="24dp"
+                app:backgroundTint="@color/primary"
+                app:cornerRadius="8dp"  />
 
             <!-- TARJETA DE DATOS -->
             <LinearLayout
@@ -108,13 +109,14 @@
                 <Space android:layout_width="0dp" android:layout_height="20dp"/>
 
                 <!-- GUARDAR -->
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSave"
-                    android:text="Guardar cambios"
-                    android:backgroundTint="@color/primary"
-                    android:textColor="@color/onPrimary"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:text="Guardar cambios"
+                    android:textColor="@color/onPrimary"
+                    app:backgroundTint="@color/primary"
+                    app:cornerRadius="8dp"  />
 
             </LinearLayout>
 

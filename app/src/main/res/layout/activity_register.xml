@@ -145,14 +145,15 @@
             <Space android:layout_width="0dp" android:layout_height="22dp" />
 
             <!-- Botón -->
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRegister"
-                android:text="@string/registrarse"
-                android:backgroundTint="@color/primary"
-                android:textColor="@color/onPrimary"
-                android:padding="12dp"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:padding="12dp"
+                android:text="@string/registrarse"
+                android:textColor="@color/onPrimary"
+                app:backgroundTint="@color/primary"
+                app:cornerRadius="8dp"  />
 
         </LinearLayout>
     </LinearLayout>
