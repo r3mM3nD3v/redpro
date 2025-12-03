@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:fillViewport="true"
     android:background="@color/bg"
     android:layout_width="match_parent"
@@ -12,21 +13,26 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!-- 🔵 LOGO / ICONO ARRIBA -->
-
-        <!-- Tarjeta elegante -->
-        <ImageView
-            android:id="@+id/appLogo"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
+        <!-- 🔵 LOGO ARRIBA -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="158dp"
+            android:layout_marginTop="20dp"
             android:layout_marginBottom="20dp"
-            android:contentDescription="App Logo"
-            android:scaleType="fitCenter"
-            android:src="@drawable/prueba_app" />
+            android:gravity="center">
 
+            <ImageView
+                android:id="@+id/appLogo"
+                android:layout_width="157dp"
+                android:layout_height="146dp"
+                android:layout_marginBottom="10dp"
+                android:adjustViewBounds="true"
+                android:contentDescription="App Logo"
+                android:scaleType="centerInside"
+                android:src="@drawable/prueba_app" />
+        </LinearLayout>
 
-
-        <!-- Tarjeta de registro -->
+        <!-- Tarjeta -->
         <LinearLayout
             android:orientation="vertical"
             android:padding="24dp"
@@ -49,37 +55,57 @@
                 android:layout_height="wrap_content" />
 
             <!-- Nombre -->
-            <EditText
-                android:id="@+id/etNombre"
-                android:hint="@string/nombre"
-                android:padding="12dp"
-                android:background="@android:drawable/edit_text"
+            <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                app:hintEnabled="true">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etNombre"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/nombre"
+                    android:padding="12dp"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
 
             <Space android:layout_width="0dp" android:layout_height="12dp" />
 
             <!-- Correo -->
-            <EditText
-                android:id="@+id/etEmail"
-                android:hint="@string/correo"
-                android:inputType="textEmailAddress"
-                android:padding="12dp"
-                android:background="@android:drawable/edit_text"
+            <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                app:hintEnabled="true">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etEmail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/correo"
+                    android:inputType="textEmailAddress"
+                    android:padding="12dp"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
 
             <Space android:layout_width="0dp" android:layout_height="12dp" />
 
-            <!-- Contraseña -->
-            <EditText
-                android:id="@+id/etPass"
-                android:hint="@string/contrasena"
-                android:inputType="textPassword"
-                android:padding="12dp"
-                android:background="@android:drawable/edit_text"
+            <!-- Contraseña con OJITO -->
+            <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                app:endIconMode="password_toggle">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPass"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/contrasena"
+                    android:padding="12dp"
+                    android:inputType="textPassword" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
 
             <Space android:layout_width="0dp" android:layout_height="18dp" />
 
@@ -118,7 +144,7 @@
 
             <Space android:layout_width="0dp" android:layout_height="22dp" />
 
-            <!-- Botón Registrarse -->
+            <!-- Botón -->
             <Button
                 android:id="@+id/btnRegister"
                 android:text="@string/registrarse"

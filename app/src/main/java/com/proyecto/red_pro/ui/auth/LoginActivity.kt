@@ -11,6 +11,9 @@ import com.proyecto.red_pro.databinding.ActivityLoginBinding
 import com.proyecto.red_pro.ui.cliente.ClienteHomeActivity
 import com.proyecto.red_pro.ui.profesional.ProfesionalHomeActivity
 import com.proyecto.red_pro.util.Prefs
+import android.text.InputType
+import com.proyecto.red_pro.R
+
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var b: ActivityLoginBinding
@@ -96,6 +99,28 @@ class LoginActivity : AppCompatActivity() {
                     Toast.makeText(this, e.message ?: "Error de inicio de sesión", Toast.LENGTH_SHORT).show()
                 }
         }
+
+        //--Implementación del ojito en la contraseña
+        var mostrar = false
+
+        b.ivTogglePass.setOnClickListener {
+            mostrar = !mostrar
+
+            if (mostrar) {
+                b.etPass.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                b.ivTogglePass.setImageResource(R.drawable.ic_eye)
+            } else {
+                b.etPass.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                b.ivTogglePass.setImageResource(R.drawable.ic_eye_off)
+            }
+
+            b.etPass.setSelection(b.etPass.text.length)
+        }
+
+        //-------
+
+
+
     }
 
     private fun goByRole(rol: String) {
